@@ -140,6 +140,40 @@ class ProductRepository:
         return {"error": f"Acción desconocida: {action}"}
 
     @staticmethod
+    async def handle_monetization(inputs: dict, user_id: str) -> dict:
+        db = get_supabase()
+        m_type = inputs["type"]
+        action = inputs["action"]
+        data = inputs.get("data", {})
+
+        table_map = {
+            "article": "content_articles",
+            "affiliate_link": "affiliate_links",
+            "subscriber": "email_subscribers"
+        }
+        table = table_map.get(m_type)
+        if not table:
+            return {"error": f"Tipo de monetización desconocido: {m_type}"}
+
+        if action == "create":
+            data["user_id"] = user_id
+            res = db.table(table).insert(data).execute()
+            return {"success": True, "data": res.data[0] if res.data else data}
+
+        if action == "list":
+            res = db.table(table).select("*").eq("user_id", user_id).execute()
+            return {f"{m_type}s": res.data or []}
+
+        if action == "delete":
+            item_id = data.get("id")
+            if not item_id:
+                return {"error": "id requerido para eliminar"}
+            db.table(table).delete().eq("id", item_id).eq("user_id", user_id).execute()
+            return {"deleted": item_id}
+
+        return {"error": f"Acción desconocida: {action}"}
+
+    @staticmethod
     async def analytics(period: str, user_id: str) -> dict:
         db = get_supabase()
 

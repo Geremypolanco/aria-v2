@@ -50,6 +50,19 @@ TOOLS = [
                 "metric": {"type": "string", "enum": ["revenue", "conversions", "top_products"]}
             }
         }
+    },
+    {
+        "name": "manage_monetization",
+        "description": "Gestiona artículos, links de afiliado y suscriptores para monetización",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "enum": ["article", "affiliate_link", "subscriber"]},
+                "action": {"type": "string", "enum": ["create", "list", "delete"]},
+                "data": {"type": "object"}
+            },
+            "required": ["type", "action"]
+        }
     }
 ]
 
@@ -63,6 +76,8 @@ async def execute_tool(name: str, inputs: dict, user_id: str) -> dict:
         return await ConversationRepository.search(inputs["query"], user_id, inputs.get("limit", 5))
     elif name == "get_analytics":
         return await ProductRepository.analytics(inputs.get("period", "week"), user_id)
+    elif name == "manage_monetization":
+        return await ProductRepository.handle_monetization(inputs, user_id)
     return {"error": f"Tool desconocida: {name}"}
 
 
