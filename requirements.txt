@@ -1,6 +1,11 @@
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
 authlib
 httpx
 python-jose[cryptography]
+anthropic
+pydantic-settings
+supabase
+itsdangerous
+starlette

@@ -1,56 +1,205 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aria V2 • Web</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aria V2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-white">
-    <div class="max-w-4xl mx-auto p-6">
-        <h1 class="text-4xl font-bold mb-8">Aria V2</h1>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Chat -->
-            <div class="lg:col-span-7 bg-slate-900 rounded-3xl p-6">
-                <h2 class="text-xl font-semibold mb-4">Chat con Aria</h2>
-                <div id="chat" class="h-96 overflow-y-auto bg-slate-950 p-4 rounded-2xl mb-4"></div>
-                
-                <div class="flex gap-3">
-                    <input id="input" type="text" class="flex-1 bg-slate-800 border border-slate-700 rounded-2xl px-6 py-4" placeholder="Escribe un mensaje...">
-                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl">Enviar</button>
-                </div>
-                
-                <div class="mt-4">
-                    <a href="/auth/login/google" class="inline-flex items-center gap-x-2 px-4 py-2 bg-white text-black rounded-2xl text-sm">
-                        <i class="fab fa-google"></i>
-                        <span>Iniciar sesión con Google</span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Quick Actions -->
-            <div class="lg:col-span-5 bg-slate-900 rounded-3xl p-6">
-                <h2 class="text-xl font-semibold mb-4">Acciones Rápidas</h2>
-                <div class="space-y-3">
-                    <button onclick="quickAction('genera un curso sobre agentes IA')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Generar Curso</button>
-                    <button onclick="quickAction('genera un ebook')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Generar Ebook</button>
-                    <button onclick="quickAction('crea un bundle')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Crear Bundle</button>
-                </div>
-            </div>
-        </div>
+<body class="bg-slate-950 text-white min-h-screen">
+<div class="max-w-4xl mx-auto p-6">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-semibold">Aria V2</h1>
+    <div id="auth-section">
+      <a href="/auth/login/google" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors">
+        Iniciar sesión con Google
+      </a>
     </div>
-    <script>
-        async function sendMessage() {
-            // Simple implementation
-            const input = document.getElementById('input').value;
-            alert('Mensaje enviado: ' + input);
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Chat -->
+    <div class="lg:col-span-8 bg-slate-900 rounded-2xl p-5 flex flex-col" style="height: 600px">
+      <div id="chat" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-1"></div>
+      <div class="flex gap-3">
+        <input id="input" type="text" placeholder="Mensaje para Aria..."
+          class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+          onkeydown="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()" id="send-btn"
+          class="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-xl text-sm font-medium transition-colors">
+          Enviar
+        </button>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="lg:col-span-4 bg-slate-900 rounded-2xl p-5">
+      <h2 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wide">Acciones rápidas</h2>
+      <div class="space-y-2">
+        <button onclick="quickAction('Genera un curso completo sobre automatización con IA')"
+          class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm transition-colors">
+          🎓 Generar curso IA
+        </button>
+        <button onclick="quickAction('Crea un ebook sobre cómo construir sistemas autónomos')"
+          class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm transition-colors">
+          📖 Generar ebook
+        </button>
+        <button onclick="quickAction('Crea un bundle premium combinando mis mejores productos')"
+          class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm transition-colors">
+          📦 Crear bundle
+        </button>
+        <button onclick="quickAction('Muéstrame las métricas de ventas de esta semana')"
+          class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm transition-colors">
+          📊 Ver analytics
+        </button>
+        <button onclick="quickAction('Lista todos mis productos activos y su estado')"
+          class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm transition-colors">
+          🗂️ Mis productos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let conversationId = null;
+
+// Extract token from URL fragment after Google OAuth redirect
+const urlParams = new URLSearchParams(window.location.search);
+const urlToken = urlParams.get('token');
+if (urlToken) {
+  localStorage.setItem('aria_token', urlToken);
+  window.history.replaceState({}, document.title, '/');
+}
+const token = localStorage.getItem('aria_token');
+
+// Show user info if logged in
+if (token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const authSection = document.getElementById('auth-section');
+    authSection.innerHTML = `
+      <div class="flex items-center gap-3">
+        ${payload.picture ? `<img src="${payload.picture}" class="w-8 h-8 rounded-full" alt="avatar">` : ''}
+        <span class="text-sm text-slate-300">${payload.name || payload.email}</span>
+        <button onclick="logout()" class="text-xs text-slate-500 hover:text-white transition-colors">Salir</button>
+      </div>`;
+  } catch(e) {}
+}
+
+function logout() {
+  localStorage.removeItem('aria_token');
+  window.location.reload();
+}
+
+function addMessage(role, content, isStreaming = false) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+  const bubble = document.createElement('div');
+  bubble.className = role === 'user'
+    ? 'bg-blue-600 rounded-2xl rounded-tr-sm px-4 py-2 max-w-xs text-sm'
+    : 'bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-2 max-w-sm text-sm';
+
+  bubble.textContent = content;
+  if (isStreaming) bubble.id = 'streaming-bubble';
+  div.appendChild(bubble);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function addToolIndicator(toolName) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'flex justify-start';
+  div.innerHTML = `<div class="text-xs text-slate-500 px-2 py-1 bg-slate-800/50 rounded-lg">⚡ Ejecutando ${toolName}…</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!token) {
+    addMessage('assistant', 'Por favor, inicia sesión con Google para usar Aria.');
+    return;
+  }
+
+  input.value = '';
+  addMessage('user', text);
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  let streamBubble = null;
+  let streamText = '';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ message: text, conversation_id: conversationId })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      addMessage('assistant', `Error: ${err.detail || res.statusText}`);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const lines = decoder.decode(value).split('\n');
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const chunk = line.slice(6);
+
+        if (chunk === '[DONE]') break;
+        if (chunk.startsWith('__tool__')) {
+          const name = chunk.replace(/__tool__|__/g, '');
+          addToolIndicator(name);
+          streamBubble = null;
+          streamText = '';
+          continue;
         }
-        function quickAction(text) {
-            document.getElementById('input').value = text;
-            sendMessage();
+        if (chunk.startsWith('__conv_id__')) {
+          conversationId = chunk.replace(/__conv_id__|__/g, '');
+          continue;
         }
-    </script>
+
+        if (!streamBubble) {
+          streamBubble = addMessage('assistant', '', true);
+        }
+        streamText += chunk;
+        streamBubble.textContent = streamText;
+        document.getElementById('chat').scrollTop = 9999;
+      }
+    }
+  } catch (e) {
+    addMessage('assistant', 'Error de conexión. Verifica tu autenticación.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar';
+}
+
+function quickAction(text) {
+  document.getElementById('input').value = text;
+  sendMessage();
+}
+</script>
 </body>
 </html>
