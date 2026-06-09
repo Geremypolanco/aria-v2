@@ -11,8 +11,8 @@ app.include_router(auth_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    path = os.path.join(os.path.dirname(__file__), "../static/index.html")
-    with open(path) as f: return HTMLResponse(f.read())
+    with open(os.path.join(os.path.dirname(__file__), "../static/index.html")) as f:
+        return HTMLResponse(f.read())
 
 @app.post("/api/chat")
 async def chat(message: str):
