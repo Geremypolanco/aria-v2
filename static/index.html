@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aria V2 • Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-white">
+    <div class="max-w-4xl mx-auto p-6">
+        <h1 class="text-4xl font-bold mb-8">Aria V2</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Chat -->
+            <div class="lg:col-span-7 bg-slate-900 rounded-3xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Chat con Aria</h2>
+                <div id="chat" class="h-96 overflow-y-auto bg-slate-950 p-4 rounded-2xl mb-4"></div>
+                
+                <div class="flex gap-3">
+                    <input id="input" type="text" class="flex-1 bg-slate-800 border border-slate-700 rounded-2xl px-6 py-4" placeholder="Escribe un mensaje...">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl">Enviar</button>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/auth/login/google" class="inline-flex items-center gap-x-2 px-4 py-2 bg-white text-black rounded-2xl text-sm">
+                        <i class="fab fa-google"></i>
+                        <span>Iniciar sesión con Google</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="lg:col-span-5 bg-slate-900 rounded-3xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Acciones Rápidas</h2>
+                <div class="space-y-3">
+                    <button onclick="quickAction('genera un curso sobre agentes IA')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Generar Curso</button>
+                    <button onclick="quickAction('genera un ebook')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Generar Ebook</button>
+                    <button onclick="quickAction('crea un bundle')" class="w-full text-left px-5 py-4 bg-slate-800 rounded-2xl">Crear Bundle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function sendMessage() {
+            // Simple implementation
+            const input = document.getElementById('input').value;
+            alert('Mensaje enviado: ' + input);
+        }
+        function quickAction(text) {
+            document.getElementById('input').value = text;
+            sendMessage();
+        }
+    </script>
+</body>
+</html>

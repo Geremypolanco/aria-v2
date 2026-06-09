@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+authlib
+httpx
+python-jose[cryptography]
