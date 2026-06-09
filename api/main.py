@@ -1,37 +1,35 @@
 from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import os
+import os, sys
 
-app = FastAPI(title="Aria V2", version="2.0")
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+from src.core.orchestrator import orchestrator
+from src.auth.router import router as auth_router
+
+app = FastAPI(title="Aria V2 - Professional", version="2.0")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-class ProfessionalOrchestrator:
-    def execute(self, user_input: str):
-        text = user_input.lower()
-        if any(kw in text for kw in ["curso", "genera curso"]):
-            return {"action": "execute_income", "result": {"message": "Curso generado", "price": 97}}
-        if "ebook" in text:
-            return {"action": "execute_income", "result": {"message": "Ebook generado", "price": 47}}
-        if "mejora" in text:
-            return {"action": "self_improve", "result": {"message": "Auto-mejora activada"}}
-        return {"action": "respond", "result": {"message": f"Procesado: {user_input}"}}
-
-orchestrator = ProfessionalOrchestrator()
+app.include_router(auth_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
     try:
-        with open(os.path.join(os.path.dirname(__file__), "../static/index.html")) as f:
-            return HTMLResponse(f.read())
-    except:
-        return HTMLResponse("<h1>Aria V2</h1>")
+        with open(os.path.join(os.path.dirname(__file__), "../static/index.html"), encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except Exception as e:
+        return HTMLResponse(f"<h1>Aria V2</h1><p>Error loading frontend: {str(e)}</p>")
 
 @app.post("/api/chat")
 async def chat(message: str = Form(...)):
-    return orchestrator.execute(message)
+    try:
+        result = orchestrator.execute(message)
+        return result
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy", "version": "2.0"}
