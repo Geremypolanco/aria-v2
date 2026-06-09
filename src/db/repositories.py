@@ -1,37 +1,57 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime
-from src.db.supabase import get_supabase
+from src.db.client import get_supabase
+
+
+class UserRepository:
+    @staticmethod
+    def upsert(google_sub: str, email: str, name: str, picture: str = "") -> dict:
+        db = get_supabase()
+        res = db.table("users").upsert(
+            {
+                "id": google_sub,
+                "email": email,
+                "name": name,
+                "picture": picture,
+                "updated_at": datetime.utcnow().isoformat(),
+            },
+            on_conflict="id",
+        ).execute()
+        return res.data[0] if res.data else {}
+
+    @staticmethod
+    def get(user_id: str) -> dict | None:
+        db = get_supabase()
+        res = db.table("users").select("*").eq("id", user_id).maybe_single().execute()
+        return res.data
 
 
 class ConversationRepository:
-
     @staticmethod
-    async def create(user_id: str) -> str:
+    def create(user_id: str) -> str:
         db = get_supabase()
         conv_id = str(uuid.uuid4())
-        db.table("conversations").insert({
-            "id": conv_id,
-            "user_id": user_id,
-            "created_at": datetime.utcnow().isoformat(),
-        }).execute()
+        db.table("conversations").insert(
+            {"id": conv_id, "user_id": user_id, "created_at": datetime.utcnow().isoformat()}
+        ).execute()
         return conv_id
 
     @staticmethod
-    async def list(user_id: str) -> list[dict]:
+    def list(user_id: str) -> list[dict]:
         db = get_supabase()
         res = (
             db.table("conversations")
-            .select("id, created_at, messages(content, role, created_at)")
+            .select("id, created_at")
             .eq("user_id", user_id)
             .order("created_at", desc=True)
-            .limit(20)
+            .limit(30)
             .execute()
         )
         return res.data or []
 
     @staticmethod
-    async def get_messages(conv_id: str, user_id: str) -> list[dict]:
+    def get_messages(conv_id: str, user_id: str) -> list[dict]:
         db = get_supabase()
         # Verify ownership
         conv = (
@@ -44,30 +64,31 @@ class ConversationRepository:
         )
         if not conv.data:
             return []
-
         res = (
             db.table("messages")
             .select("role, content")
             .eq("conversation_id", conv_id)
             .order("created_at")
+            .limit(40)
             .execute()
         )
         return [{"role": r["role"], "content": r["content"]} for r in (res.data or [])]
 
     @staticmethod
-    async def add_message(conv_id: str, role: str, content: str) -> None:
+    def add_message(conv_id: str, role: str, content: str) -> None:
         db = get_supabase()
-        db.table("messages").insert({
-            "id": str(uuid.uuid4()),
-            "conversation_id": conv_id,
-            "role": role,
-            "content": content,
-            "created_at": datetime.utcnow().isoformat(),
-        }).execute()
+        db.table("messages").insert(
+            {
+                "id": str(uuid.uuid4()),
+                "conversation_id": conv_id,
+                "role": role,
+                "content": content,
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        ).execute()
 
     @staticmethod
-    async def search(query: str, user_id: str, limit: int = 5) -> list[dict]:
-        """Búsqueda full-text en mensajes del usuario."""
+    def search(query: str, user_id: str, limit: int = 5) -> list[dict]:
         db = get_supabase()
         res = (
             db.table("messages")
@@ -82,27 +103,26 @@ class ConversationRepository:
 
 
 class ProductRepository:
-
     @staticmethod
-    async def create(data: dict, user_id: str) -> dict:
+    def create(data: dict, user_id: str) -> dict:
         db = get_supabase()
         record = {
             "id": str(uuid.uuid4()),
             "user_id": user_id,
             "created_at": datetime.utcnow().isoformat(),
             "status": data.get("status", "draft"),
-            "type": data.get("type"),
-            "topic": data.get("topic"),
+            "type": data.get("type", "course"),
             "title": data.get("title", data.get("topic", "Sin título")),
+            "topic": data.get("topic", ""),
             "description": data.get("description", ""),
-            "price": data.get("price", 0),
+            "price": float(data.get("price", 0)),
             "content_json": data,
         }
         res = db.table("products").insert(record).execute()
         return res.data[0] if res.data else record
 
     @staticmethod
-    async def handle(inputs: dict, user_id: str) -> dict:
+    def handle(inputs: dict, user_id: str) -> dict:
         db = get_supabase()
         action = inputs["action"]
 
@@ -117,7 +137,7 @@ class ProductRepository:
             return {"products": res.data or []}
 
         if action == "create":
-            return await ProductRepository.create(inputs.get("data", {}), user_id)
+            return ProductRepository.create(inputs.get("data", {}), user_id)
 
         if action == "update":
             product_id = inputs.get("product_id")
@@ -140,7 +160,39 @@ class ProductRepository:
         return {"error": f"Acción desconocida: {action}"}
 
     @staticmethod
-    async def handle_monetization(inputs: dict, user_id: str) -> dict:
+    def analytics(period: str, user_id: str) -> dict:
+        db = get_supabase()
+        interval = {
+            "today": "1 day",
+            "week": "7 days",
+            "month": "30 days",
+            "all": "3650 days",
+        }.get(period, "7 days")
+
+        res = (
+            db.table("products")
+            .select("id, title, type, price, status, created_at")
+            .eq("user_id", user_id)
+            .gte("created_at", f"(now() - interval '{interval}')")
+            .execute()
+        )
+        data = res.data or []
+        published = [p for p in data if p["status"] == "published"]
+        by_type: dict[str, int] = {}
+        for p in data:
+            by_type[p["type"]] = by_type.get(p["type"], 0) + 1
+
+        return {
+            "period": period,
+            "total_products": len(data),
+            "published": len(published),
+            "revenue_potential": sum(p["price"] for p in published),
+            "by_type": by_type,
+            "products": data,
+        }
+
+    @staticmethod
+    def handle_monetization(inputs: dict, user_id: str) -> dict:
         db = get_supabase()
         m_type = inputs["type"]
         action = inputs["action"]
@@ -173,72 +225,40 @@ class ProductRepository:
 
         return {"error": f"Acción desconocida: {action}"}
 
+
+class MemoryRepository:
+    """Persistent memory entries: facts Aria learns about the user."""
+
     @staticmethod
-    async def analytics(period: str, user_id: str) -> dict:
+    def add(user_id: str, key: str, value: str) -> None:
         db = get_supabase()
+        db.table("memory").upsert(
+            {
+                "id": f"{user_id}:{key}",
+                "user_id": user_id,
+                "key": key,
+                "value": value,
+                "updated_at": datetime.utcnow().isoformat(),
+            },
+            on_conflict="id",
+        ).execute()
 
-        from datetime import timedelta
-        period_delta = {
-            "today": timedelta(days=1),
-            "week":  timedelta(days=7),
-            "month": timedelta(days=30),
-            "all":   timedelta(days=3650),
-        }.get(period, timedelta(days=7))
-
-        since = (datetime.utcnow() - period_delta).isoformat()
-
-        products = (
-            db.table("products")
-            .select("id, title, type, price, status, created_at")
+    @staticmethod
+    def get_all(user_id: str) -> list[dict]:
+        db = get_supabase()
+        res = (
+            db.table("memory")
+            .select("key, value, updated_at")
             .eq("user_id", user_id)
-            .gte("created_at", since)
+            .order("updated_at", desc=True)
             .execute()
         )
-
-        data = products.data or []
-        total_revenue = sum(p["price"] for p in data if p["status"] == "published")
-        by_type: dict = {}
-        for p in data:
-            by_type[p["type"]] = by_type.get(p["type"], 0) + 1
-
-        return {
-            "period": period,
-            "total_products": len(data),
-            "total_revenue_potential": total_revenue,
-            "by_type": by_type,
-            "products": data,
-        }
-
-
-class UserRepository:
+        return res.data or []
 
     @staticmethod
-    async def upsert(google_sub: str, email: str, name: str, picture: str = "") -> dict:
-        db = get_supabase()
-        res = (
-            db.table("users")
-            .upsert(
-                {
-                    "id": google_sub,
-                    "email": email,
-                    "name": name,
-                    "picture": picture,
-                    "updated_at": datetime.utcnow().isoformat(),
-                },
-                on_conflict="id",
-            )
-            .execute()
-        )
-        return res.data[0] if res.data else {}
-
-    @staticmethod
-    async def get(user_id: str) -> dict | None:
-        db = get_supabase()
-        res = (
-            db.table("users")
-            .select("*")
-            .eq("id", user_id)
-            .maybe_single()
-            .execute()
-        )
-        return res.data
+    def format_for_context(user_id: str) -> str:
+        entries = MemoryRepository.get_all(user_id)
+        if not entries:
+            return ""
+        lines = [f"- {e['key']}: {e['value']}" for e in entries]
+        return "Conocimiento persistente sobre el usuario:\n" + "\n".join(lines)

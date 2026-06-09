@@ -1,68 +1,156 @@
-import anthropic
+"""
+Aria's autonomous agent core.
+Runs a streaming agentic loop: think → tool → think → respond.
+"""
+from __future__ import annotations
 from typing import AsyncIterator
+import anthropic
 from src.core.config import settings
-from src.core.tools import TOOLS, execute_tool
+from src.tools.registry import TOOLS, execute_tool
+from src.db.repositories import MemoryRepository
 
-client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
-SYSTEM_PROMPT = """Eres Aria, un sistema de inteligencia operativa autónoma diseñado para la generación masiva de ingresos y gestión de negocios digitales. Tu propósito es replicar y expandir la visión de MEGAN v4.0.
+SYSTEM_PROMPT = """\
+Eres Aria, un sistema de inteligencia operativa autónoma diseñado para la generación masiva de ingresos y gestión de negocios digitales. Tu propósito es replicar y expandir la visión de MEGAN v4.0.
 
-Capacidades y Propósito:
-1. **Generación de Productos Digitales:** Crea cursos, ebooks y bundles de alta calidad optimizados para la venta.
-2. **Monetización de Contenido:** Genera artículos para blogs/plataformas (Medium, Dev.to) e integra links de afiliado estratégicamente.
-3. **Gestión de Audiencia:** Administra suscriptores y estrategias de email marketing.
-4. **Análisis de Negocios:** Monitorea ingresos, conversiones y rendimiento de productos para recomendar acciones de optimización.
-5. **Autonomía y Memoria:** Utiliza el historial del usuario y sus preferencias para personalizar cada acción.
+MISIÓN: Generar valor de forma autónoma y sostenida, mediante la creación de productos digitales, monetización de contenido y gestión de audiencias.
 
-Cuando el usuario pida crear contenido, gestionar productos o analizar métricas, SIEMPRE usa las tools disponibles.
-Responde en el idioma del usuario. Sé directo, ejecutivo, orientado a resultados y proactivo en la búsqueda de nuevas oportunidades de ingresos."""
+PRINCIPIOS:
+- Ejecución sobre propuestas: actúas, no solo sugieres. Usas las tools disponibles.
+- Respuestas cortas y directas. Sin decoración. Sin relleno.
+- Iniciativa inteligente: detectas oportunidades y actúas sobre ellas proactivamente.
+- Aprendizaje real: cuando el usuario mencione preferencias o contexto, los guardas con save_memory.
+- Conciencia de herramientas: conoces Stripe, Gumroad, Hugging Face, Groq y Supabase.
+
+COMPORTAMIENTO:
+- Cuando el usuario mencione un tema o nicho → llama detect_opportunity primero.
+- Cuando pida crear contenido → llama generate_content inmediatamente.
+- Cuando pida gestionar artículos o afiliados → llama manage_monetization.
+- Cuando pidas ver productos o métricas → llama manage_products o get_analytics.
+- Guarda en memoria cualquier dato relevante: nicho, audiencia, precio preferido, objetivos.
+- Nunca pidas permiso para ejecutar una tool cuando la intención es clara.
+
+FORMATO DE RESPUESTA:
+- Máximo 3-4 líneas de texto por respuesta.
+- Si ejecutaste una tool, reporta el resultado concreto, no el proceso.
+- Idioma: el del usuario.\
+"""
 
 
-async def run_agent_stream(
+async def run_agent(
     messages: list[dict],
-    user_id: str
+    user_id: str,
 ) -> AsyncIterator[str]:
-    """Ejecuta el agente con streaming y tool_use en loop."""
+    """
+    Agentic loop with streaming.
+    Yields SSE-formatted strings: "data: <chunk>\\n\\n"
+    Special markers:
+      data: __tool_start__<name>__
+      data: __tool_end__<name>__
+      data: [DONE]
+    """
+    memory_context = MemoryRepository.format_for_context(user_id)
+    system = SYSTEM_PROMPT
+    if memory_context:
+        system += f"\n\n{memory_context}"
 
-    local_messages = messages.copy()
+    local_messages = [m for m in messages]
 
     while True:
-        response = await client.messages.create(
+        # ── Streaming request ──────────────────────────────────────────────
+        collected_blocks: list = []
+        current_block: dict | None = None
+        stop_reason: str | None = None
+
+        with client.messages.stream(
             model="claude-opus-4-5",
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
+            max_tokens=2048,
+            system=system,
             tools=TOOLS,
             messages=local_messages,
-            stream=True
-        )
+        ) as stream:
+            for event in stream:
+                etype = event.type
 
-        tool_calls = []
-        current_text = ""
+                if etype == "content_block_start":
+                    cb = event.content_block
+                    if cb.type == "text":
+                        current_block = {"type": "text", "text": ""}
+                    elif cb.type == "tool_use":
+                        current_block = {
+                            "type": "tool_use",
+                            "id": cb.id,
+                            "name": cb.name,
+                            "input_raw": "",
+                        }
 
-        async for event in response:
-            if event.type == "content_block_delta":
-                if hasattr(event.delta, "text"):
-                    current_text += event.delta.text
-                    yield f"data: {event.delta.text}\n\n"
+                elif etype == "content_block_delta":
+                    if current_block is None:
+                        continue
+                    delta = event.delta
+                    if current_block["type"] == "text" and delta.type == "text_delta":
+                        current_block["text"] += delta.text
+                        yield f"data: {delta.text}\n\n"
+                    elif current_block["type"] == "tool_use" and delta.type == "input_json_delta":
+                        current_block["input_raw"] += delta.partial_json
 
-            elif event.type == "content_block_stop":
-                if hasattr(event, "content_block") and event.content_block.type == "tool_use":
-                    tool_calls.append(event.content_block)
+                elif etype == "content_block_stop":
+                    if current_block:
+                        collected_blocks.append(current_block)
+                        current_block = None
 
-        if not tool_calls:
+                elif etype == "message_delta":
+                    stop_reason = event.delta.stop_reason
+
+        # ── No tool calls → done ───────────────────────────────────────────
+        tool_blocks = [b for b in collected_blocks if b["type"] == "tool_use"]
+        if not tool_blocks:
             yield "data: [DONE]\n\n"
             break
 
-        # Ejecutar tools y continuar el loop
-        tool_results = []
-        for tool_call in tool_calls:
-            yield f"data: __tool__{tool_call.name}__\n\n"
-            result = await execute_tool(tool_call.name, tool_call.input, user_id)
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": tool_call.id,
-                "content": str(result)
-            })
+        # ── Build assistant message with all blocks ───────────────────────
+        assistant_content = []
+        for b in collected_blocks:
+            if b["type"] == "text":
+                assistant_content.append({"type": "text", "text": b["text"]})
+            elif b["type"] == "tool_use":
+                import json
+                try:
+                    parsed_input = json.loads(b["input_raw"] or "{}")
+                except Exception:
+                    parsed_input = {}
+                assistant_content.append(
+                    {
+                        "type": "tool_use",
+                        "id": b["id"],
+                        "name": b["name"],
+                        "input": parsed_input,
+                    }
+                )
 
-        local_messages.append({"role": "assistant", "content": tool_calls})
+        local_messages.append({"role": "assistant", "content": assistant_content})
+
+        # ── Execute tools ─────────────────────────────────────────────────
+        tool_results = []
+        for b in tool_blocks:
+            import json
+            try:
+                tool_input = json.loads(b["input_raw"] or "{}")
+            except Exception:
+                tool_input = {}
+
+            yield f"data: __tool_start__{b['name']}__\n\n"
+            result_str = await execute_tool(b["name"], tool_input, user_id)
+            yield f"data: __tool_end__{b['name']}__\n\n"
+
+            tool_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": b["id"],
+                    "content": result_str,
+                }
+            )
+
         local_messages.append({"role": "user", "content": tool_results})
+        # Loop continues → Claude processes tool results and responds

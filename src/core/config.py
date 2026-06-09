@@ -1,17 +1,34 @@
 from pydantic_settings import BaseSettings
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
+
+    # Auth
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
     JWT_SECRET: str = "change-me-in-production"
-    ANTHROPIC_API_KEY: str
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_KEY: str  # service_role key, nunca la anon
+
+    # AI
+    ANTHROPIC_API_KEY: str = ""
+
+    # Supabase
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+
+    # External tools (optional — Aria uses them when available)
+    STRIPE_SECRET_KEY: str = ""
+    GUMROAD_ACCESS_TOKEN: str = ""
+    GROQ_API_KEY: str = ""
 
     class Config:
         env_file = ".env"
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()

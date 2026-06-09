@@ -1,62 +1,88 @@
-# Aria V2 — Agente Autónomo de Productos Digitales
+# Aria V2 — Agente Cognitivo Autónomo
 
-Aria V2 es un agente de IA autónomo construido con **Claude API**, **FastAPI**, **Supabase** y **Google OAuth2**. Genera cursos, ebooks y bundles de productos digitales, gestiona un catálogo con persistencia real y responde en streaming via SSE.
+Agente autónomo de generación de ingresos con productos digitales. Construido con FastAPI, Claude API (tool_use + streaming), Supabase y desplegado en Vercel.
 
 ## Stack
 
 | Capa | Tecnología |
-|------|-----------|
-| Backend | FastAPI + Python 3.11 |
-| IA | Anthropic Claude (claude-opus-4-5) con tool_use |
-| Base de datos | Supabase (PostgreSQL) |
+|---|---|
+| Backend | FastAPI (serverless en Vercel) |
+| AI | Anthropic Claude claude-opus-4-5 con tool_use |
+| Base de datos | Supabase (Postgres) |
 | Auth | Google OAuth2 + JWT |
-| Frontend | HTML + TailwindCSS + SSE streaming |
-| Deploy | Vercel (serverless Python) |
+| Frontend | HTML/CSS/JS vanilla con SSE streaming |
 
-## Arquitectura
+## Setup
 
-```
-api/main.py          ← Entry point FastAPI + SSE streaming
-src/core/agent.py    ← Loop agente Claude con tool_use
-src/core/tools.py    ← Definición y ejecución de tools
-src/core/config.py   ← Settings con pydantic-settings
-src/auth/router.py   ← Google OAuth2 → JWT
-src/auth/jwt.py      ← create/decode JWT
-src/auth/dependencies.py ← get_current_user FastAPI dep
-src/db/supabase.py   ← Cliente Supabase singleton
-src/db/repositories.py ← ConversationRepo, ProductRepo, UserRepo
-static/index.html    ← Frontend con SSE real (sin alert())
-supabase_schema.sql  ← Schema SQL completo para Supabase
+### 1. Clonar y configurar entorno
+
+```bash
+git clone <repo>
+cd aria-v2
+cp .env.example .env
+# Edita .env con tus credenciales
 ```
 
-## Variables de entorno
+### 2. Base de datos
 
-Copia `.env.example` a `.env` y completa:
+En Supabase Dashboard → SQL Editor → New query, pega y ejecuta el contenido de `schema.sql`.
 
-```env
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-JWT_SECRET=...          # openssl rand -hex 32
-ANTHROPIC_API_KEY=sk-ant-...
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_SERVICE_KEY=eyJ...  # service_role key
+### 3. Google OAuth
+
+1. Ir a [console.cloud.google.com](https://console.cloud.google.com)
+2. Crear proyecto → APIs & Services → Credentials → OAuth 2.0 Client ID
+3. Authorized redirect URIs: `https://tu-dominio.vercel.app/auth/callback`
+4. Copiar Client ID y Secret a `.env`
+
+### 4. Deploy en Vercel
+
+```bash
+npm i -g vercel
+vercel
 ```
 
-En Vercel, configura estas variables en **Settings > Environment Variables**.
+Agregar variables de entorno en Vercel Dashboard → Settings → Environment Variables (todas las del `.env`).
 
-## Setup Supabase
-
-1. Crea un proyecto en [supabase.com](https://supabase.com)
-2. Ve a **SQL Editor** y ejecuta el contenido de `supabase_schema.sql`
-3. Copia la **service_role key** (Settings > API) como `SUPABASE_SERVICE_KEY`
-
-## Desarrollo local
+### 5. Local
 
 ```bash
 pip install -r requirements.txt
 uvicorn api.main:app --reload
 ```
 
-## Deploy
+## Arquitectura
 
-El proyecto se despliega automáticamente en Vercel al hacer push a `main`.
+```
+aria-v2/
+├── api/
+│   └── main.py          # FastAPI app + rutas
+├── src/
+│   ├── core/
+│   │   ├── config.py    # Settings (pydantic)
+│   │   └── agent.py     # Agentic loop con streaming
+│   ├── tools/
+│   │   └── registry.py  # Tool schemas + ejecutores
+│   ├── auth/
+│   │   ├── router.py    # Google OAuth + callback
+│   │   ├── jwt.py       # Create/decode JWT
+│   │   └── dependencies.py
+│   └── db/
+│       ├── client.py    # Supabase singleton
+│       └── repositories.py
+├── static/
+│   └── index.html       # Frontend completo
+├── schema.sql           # Esquema Supabase
+├── vercel.json
+└── requirements.txt
+```
+
+## Capacidades del agente
+
+Aria ejecuta un loop autónomo de razonamiento:
+
+1. **detect_opportunity** — analiza contexto y detecta nichos rentables
+2. **generate_content** — genera cursos, ebooks y bundles completos con Claude
+3. **manage_products** — lista, actualiza y publica el catálogo
+4. **get_analytics** — métricas de productos y revenue potencial
+5. **search_memory** — busca en historial de conversaciones
+6. **save_memory** — persiste contexto del usuario entre sesiones

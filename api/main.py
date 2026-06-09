@@ -1,21 +1,26 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+"""
+Aria V2 — Main FastAPI application.
+Entry point for Vercel serverless deployment.
+"""
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
-import os
-import sys
-import json
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from src.core.agent import run_agent_stream
+from src.core.config import settings
+from src.core.agent import run_agent
 from src.auth.router import router as auth_router
 from src.auth.dependencies import get_current_user
 from src.db.repositories import ConversationRepository
-from src.core.config import settings
 
-app = FastAPI(title="Aria V2", version="2.0")
+# ─────────────────────────────────────────────
+app = FastAPI(title="Aria V2", version="2.0.0", docs_url=None, redoc_url=None)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,16 +32,22 @@ app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET)
 app.include_router(auth_router)
 
 
+# ─────────────────────────────────────────────
+# Static frontend
+# ─────────────────────────────────────────────
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    html_path = os.path.join(os.path.dirname(__file__), "../static/index.html")
+    with open(html_path, encoding="utf-8") as f:
+        return HTMLResponse(f.read())
+
+
+# ─────────────────────────────────────────────
+# Chat — streaming SSE
+# ─────────────────────────────────────────────
 class ChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
-
-
-@app.get("/", response_class=HTMLResponse)
-async def home():
-    path = os.path.join(os.path.dirname(__file__), "../static/index.html")
-    with open(path, encoding="utf-8") as f:
-        return HTMLResponse(f.read())
 
 
 @app.post("/api/chat")
@@ -46,45 +57,61 @@ async def chat(
 ):
     user_id = user["sub"]
 
-    # Cargar o crear conversación
-    conv_id = req.conversation_id
-    if conv_id:
-        messages = await ConversationRepository.get_messages(conv_id, user_id)
+    # Load or create conversation
+    if req.conversation_id:
+        messages = ConversationRepository.get_messages(req.conversation_id, user_id)
+        conv_id = req.conversation_id
     else:
-        conv_id = await ConversationRepository.create(user_id)
+        conv_id = ConversationRepository.create(user_id)
         messages = []
 
     messages.append({"role": "user", "content": req.message})
-    await ConversationRepository.add_message(conv_id, "user", req.message)
+    ConversationRepository.add_message(conv_id, "user", req.message)
 
-    async def stream_response():
+    async def stream():
         full_response = ""
-        async for chunk in run_agent_stream(messages, user_id):
+        async for chunk in run_agent(messages, user_id):
             yield chunk
+            # Accumulate text chunks (not markers)
             if (
                 chunk.startswith("data: ")
                 and not chunk.startswith("data: [DONE]")
-                and not chunk.startswith("data: __tool__")
+                and not chunk.startswith("data: __tool")
             ):
-                full_response += chunk[6:].strip()
+                full_response += chunk[6:].rstrip("\n")
 
         if full_response:
-            await ConversationRepository.add_message(conv_id, "assistant", full_response)
+            ConversationRepository.add_message(conv_id, "assistant", full_response)
 
         yield f"data: __conv_id__{conv_id}__\n\n"
 
     return StreamingResponse(
-        stream_response(),
+        stream(),
         media_type="text/event-stream",
-        headers={"X-Conversation-Id": conv_id},
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "X-Conversation-Id": conv_id,
+        },
     )
 
 
+# ─────────────────────────────────────────────
+# Conversations
+# ─────────────────────────────────────────────
 @app.get("/api/conversations")
 async def get_conversations(user: dict = Depends(get_current_user)):
-    return await ConversationRepository.list(user["sub"])
+    return ConversationRepository.list(user["sub"])
 
 
+@app.get("/api/conversations/{conv_id}/messages")
+async def get_messages(conv_id: str, user: dict = Depends(get_current_user)):
+    return ConversationRepository.get_messages(conv_id, user["sub"])
+
+
+# ─────────────────────────────────────────────
+# Health
+# ─────────────────────────────────────────────
 @app.get("/api/health")
 async def health():
-    return {"status": "healthy", "version": "2.0"}
+    return {"status": "healthy", "version": "2.0.0", "agent": "aria"}
