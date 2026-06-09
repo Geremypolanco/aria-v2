@@ -147,6 +147,18 @@ TOOLS = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "telegram_manager",
+        "description": "Envía mensajes o notificaciones a través del bot de Telegram.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "chat_id": {"type": "string", "description": "ID del chat de Telegram"},
+                "message": {"type": "string", "description": "Contenido del mensaje"}
+            },
+            "required": ["message"]
+        }
     }
 ]
 
@@ -175,6 +187,8 @@ async def execute_tool(name: str, inputs: dict, user_id: str) -> str:
             result = ProductRepository.handle_monetization(inputs, user_id)
         elif name == "shopify_manager":
             result = await _shopify_manager(inputs)
+        elif name == "telegram_manager":
+            result = await _telegram_manager(inputs, user_id)
         else:
             result = {"error": f"Tool desconocida: {name}"}
         return json.dumps(result, ensure_ascii=False)
@@ -324,5 +338,33 @@ async def _shopify_manager(inputs: dict) -> dict:
             resp = requests.get(f"https://{shop_url}/admin/api/{api_version}/products.json", headers=headers)
             return resp.json()
         return {"error": f"Acción Shopify no implementada: {action}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+async def _telegram_manager(inputs: dict, user_id: str) -> dict:
+    from src.core.config import settings
+    import requests
+
+    token = settings.TELEGRAM_BOT_TOKEN
+    if not token:
+        return {"error": "TELEGRAM_BOT_TOKEN no configurado"}
+
+    # Si no hay chat_id, intentamos obtenerlo de la memoria del usuario o usamos un default
+    chat_id = inputs.get("chat_id")
+    if not chat_id:
+        # Aquí se podría buscar en MemoryRepository por 'telegram_chat_id'
+        return {"error": "chat_id es requerido para enviar mensajes por Telegram"}
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": inputs["message"],
+        "parse_mode": "Markdown"
+    }
+
+    try:
+        resp = requests.post(url, json=payload)
+        return resp.json()
     except Exception as e:
         return {"error": str(e)}
