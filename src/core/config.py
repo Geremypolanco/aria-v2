@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # Auth
-    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_ID: str = "475046725598-vm3b12e17kfarcs4@jucei7rrk32kruu.apps.googleusercontent.com"
     GOOGLE_CLIENT_SECRET: str = ""
     JWT_SECRET: str = "change-me-in-production"
 
@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     UPSTASH_REDIS_REST_URL: str = ""
     UPSTASH_REDIS_REST_TOKEN: str = ""
     FLY_IO_TOKEN: str = ""
+    SHOPIFY_SHOP_URL: str = "voidline-38.myshopify.com"
+    SHOPIFY_ACCESS_TOKEN: str = ""
 
     class Config:
         env_file = ".env"

@@ -135,6 +135,18 @@ TOOLS = [
             },
             "required": ["type", "action"]
         }
+    },
+    {
+        "name": "shopify_manager",
+        "description": "Interactúa con la tienda Shopify: lista productos, crea descuentos o revisa pedidos.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string", "enum": ["list_products", "get_shop_info", "create_discount"]},
+                "params": {"type": "object"}
+            },
+            "required": ["action"]
+        }
     }
 ]
 
@@ -161,6 +173,8 @@ async def execute_tool(name: str, inputs: dict, user_id: str) -> str:
             result = await _detect_opportunity(inputs["context"], user_id)
         elif name == "manage_monetization":
             result = ProductRepository.handle_monetization(inputs, user_id)
+        elif name == "shopify_manager":
+            result = await _shopify_manager(inputs)
         else:
             result = {"error": f"Tool desconocida: {name}"}
         return json.dumps(result, ensure_ascii=False)
@@ -282,3 +296,33 @@ Analiza y devuelve ÚNICAMENTE un JSON con:
     raw = response.content[0].text.strip()
     json_match = re.search(r"\{.*\}", raw, re.DOTALL)
     return json.loads(json_match.group()) if json_match else {"raw": raw}
+
+
+async def _shopify_manager(inputs: dict) -> dict:
+    from src.core.config import settings
+    import requests
+
+    shop_url = settings.SHOPIFY_SHOP_URL
+    token = settings.SHOPIFY_ACCESS_TOKEN
+    
+    if not token:
+        return {"error": "SHOPIFY_ACCESS_TOKEN no configurado"}
+
+    headers = {
+        "X-Shopify-Access-Token": token,
+        "Content-Type": "application/json"
+    }
+    
+    action = inputs["action"]
+    api_version = "2024-04"
+    
+    try:
+        if action == "get_shop_info":
+            resp = requests.get(f"https://{shop_url}/admin/api/{api_version}/shop.json", headers=headers)
+            return resp.json()
+        elif action == "list_products":
+            resp = requests.get(f"https://{shop_url}/admin/api/{api_version}/products.json", headers=headers)
+            return resp.json()
+        return {"error": f"Acción Shopify no implementada: {action}"}
+    except Exception as e:
+        return {"error": str(e)}
