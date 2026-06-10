@@ -3,171 +3,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Aria V2 - Agente cognitivo autónomo. Genera imágenes, videos, audio y productos digitales con IA.">
-<meta name="theme-color" content="#07070a">
+<meta name="description" content="Aria V2 - Agente IA Autónomo. Genera imágenes, videos, audio y productos digitales con IA.">
+<meta name="theme-color" content="#0f0f1e">
 <title>Aria V2 - Agente IA Autónomo</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#07070a;
-  --s1:#0f0f12;
-  --s2:#17171c;
-  --s3:#1f1f26;
-  --border:#2a2a35;
-  --border2:#3a3a48;
-  --text:#f0f0f5;
-  --t2:#9090a8;
-  --t3:#50505f;
-  --accent:#7c6aff;
-  --accent2:#a78bfa;
-  --green:#34d399;
-  --amber:#fbbf24;
-  --red:#f87171;
-  --blue:#60a5fa;
-  --r:10px;
-  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  --bg:#0f0f1e;
+  --bg-secondary:#1a1a2e;
+  --bg-tertiary:#25253d;
+  --border:#3a3a52;
+  --border-light:#4a4a68;
+  --text:#f5f5f7;
+  --text-secondary:#b0b0c0;
+  --text-tertiary:#7a7a8a;
+  --accent:#7c3aed;
+  --accent-light:#a78bfa;
+  --accent-dark:#6d28d9;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --error:#ef4444;
+  --info:#3b82f6;
+  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Helvetica,Arial,sans-serif;
+  --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.6}
 
-/* ── Layout ─────────────────────────────── */
-.layout{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:260px;min-width:260px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--s1)}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+/* ── Layout ─────────────────────────────────────────── */
+.layout{display:grid;grid-template-columns:280px 1fr;height:100vh;overflow:hidden}
+.sidebar{background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.main{display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-/* ── Sidebar ────────────────────────────── */
-.sb-top{padding:16px 14px 12px;border-bottom:1px solid var(--border)}
-.logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c6aff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 0 16px rgba(124,106,255,.4)}
-.logo-name{font-size:16px;font-weight:700;letter-spacing:-.5px;background:linear-gradient(90deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-badge{font-size:11px;color:var(--accent);font-weight:600;margin-left:auto;background:rgba(124,106,255,.1);padding:2px 6px;border-radius:4px}
-.new-btn{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t2);font-size:13px;cursor:pointer;text-align:left;transition:.15s;display:flex;align-items:center;gap:7px;font-weight:500}
-.new-btn:hover{background:var(--s3);color:var(--text);border-color:var(--accent)}
-.sb-body{flex:1;overflow-y:auto;padding:10px 8px}
-.sb-body::-webkit-scrollbar{width:4px}
-.sb-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.sb-label{padding:8px 10px 4px;font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
-.conv-item{padding:8px 11px;border-radius:8px;cursor:pointer;color:var(--t2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s}
-.conv-item:hover,.conv-item.active{background:var(--s2);color:var(--text)}
-.sb-footer{padding:12px 14px;border-top:1px solid var(--border)}
-.user-row{display:flex;align-items:center;gap:10px}
-.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff;overflow:hidden}
+/* ── Sidebar ────────────────────────────────────────── */
+.sb-header{padding:20px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;transition:var(--transition)}
+.logo:hover{opacity:0.8}
+.logo-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-light));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+.logo-text{flex:1}
+.logo-name{font-size:16px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
+.logo-badge{font-size:11px;color:var(--accent);font-weight:600;background:rgba(124,58,237,0.1);padding:3px 8px;border-radius:6px}
+.new-chat-btn{width:100%;padding:10px 14px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:8px}
+.new-chat-btn:hover{background:var(--accent-light);transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.3)}
+.new-chat-btn:active{transform:translateY(0)}
+
+.sb-body{flex:1;overflow-y:auto;padding:12px 8px}
+.sb-body::-webkit-scrollbar{width:6px}
+.sb-body::-webkit-scrollbar-track{background:transparent}
+.sb-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;transition:var(--transition)}
+.sb-body::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+.sb-label{padding:10px 12px 6px;font-size:12px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.conv-item{padding:10px 12px;margin:4px 0;border-radius:10px;cursor:pointer;color:var(--text-secondary);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:var(--transition);border:1px solid transparent}
+.conv-item:hover{background:var(--bg-tertiary);color:var(--text);border-color:var(--border)}
+.conv-item.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.sb-footer{padding:14px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.user-card{display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-tertiary);border-radius:10px;border:1px solid var(--border)}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-light));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;color:#fff;overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.u-info{flex:1;min-width:0}
-.u-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.u-email{font-size:12px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.logout{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:5px;border-radius:5px;transition:.15s}
-.logout:hover{color:var(--red)}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:12px;color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:6px;border-radius:6px;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.logout-btn:hover{color:var(--error);background:rgba(239,68,68,0.1)}
 
-/* ── Chat header ────────────────────────── */
-.chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--s1);flex-shrink:0}
-.h-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
-.h-title{font-size:14px;font-weight:700;letter-spacing:-.3px}
-.h-caps{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
-.h-cap{padding:4px 10px;background:var(--s2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--t3);font-weight:500}
+/* ── Chat Header ────────────────────────────────────── */
+.chat-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg-secondary);flex-shrink:0}
+.header-status{width:10px;height:10px;border-radius:50%;background:var(--success);box-shadow:0 0 12px var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.header-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;color:var(--text)}
+.header-badges{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.badge{padding:5px 12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text-tertiary);font-weight:500}
 
-/* ── Messages ───────────────────────────── */
-.messages{flex:1;overflow-y:auto;padding:20px 20px 10px;display:flex;flex-direction:column;gap:16px}
-.messages::-webkit-scrollbar{width:5px}
+/* ── Messages ───────────────────────────────────────── */
+.messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;background:var(--bg)}
+.messages::-webkit-scrollbar{width:6px}
+.messages::-webkit-scrollbar-track{background:transparent}
 .messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-.msg{display:flex;gap:11px;max-width:700px}
-.msg.user{align-self:flex-end;flex-direction:row-reverse;max-width:550px}
-.m-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px}
-.msg.assistant .m-avatar{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 0 12px rgba(124,106,255,.35)}
-.msg.user .m-avatar{background:var(--s3);color:var(--t2);border:1px solid var(--border)}
-.m-body{min-width:0;flex:1}
-.m-bubble{padding:11px 15px;border-radius:12px;line-height:1.65;font-size:14px}
-.msg.assistant .m-bubble{background:var(--s1);border:1px solid var(--border);border-radius:4px 12px 12px 12px}
-.msg.user .m-bubble{background:linear-gradient(135deg,#5b4fcf,var(--accent));color:#fff;border-radius:12px 4px 12px 12px}
-.m-time{font-size:11px;color:var(--t3);margin-top:4px;padding:0 2px}
-.msg.user .m-time{text-align:right}
+.message{display:flex;gap:12px;max-width:900px;animation:slideIn 0.3s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.message.user{align-self:flex-end;flex-direction:row-reverse;max-width:700px}
 
-/* ── Tool indicator ─────────────────────── */
-.tool-row{align-self:flex-start;display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--s2);border:1px solid var(--border);border-radius:7px;font-size:13px;color:var(--t3);font-weight:500}
-.tool-pulse{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.msg-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;margin-top:2px}
+.message.assistant .msg-avatar{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#fff;box-shadow:0 4px 12px rgba(124,58,237,0.3)}
+.message.user .msg-avatar{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border)}
 
-/* ── Asset cards ────────────────────────── */
-.asset-card{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--s2);max-width:500px;margin-top:6px}
-.asset-card img{width:100%;display:block;cursor:pointer;transition:.2s}
-.asset-card img:hover{opacity:.9}
+.msg-content{min-width:0;flex:1}
+.msg-bubble{padding:14px 18px;border-radius:14px;line-height:1.7;font-size:14px;word-wrap:break-word}
+.message.assistant .msg-bubble{background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px 14px 14px 14px;color:var(--text)}
+.message.user .msg-bubble{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:14px 4px 14px 14px}
+.msg-time{font-size:12px;color:var(--text-tertiary);margin-top:6px;padding:0 2px}
+.message.user .msg-time{text-align:right}
+
+/* ── Tool Indicator ─────────────────────────────────── */
+.tool-indicator{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary);font-weight:500;width:fit-content;margin-top:6px}
+.tool-pulse{width:7px;height:7px;border-radius:50%;background:var(--warning);animation:pulse 1s infinite}
+
+/* ── Asset Cards ────────────────────────────────────── */
+.asset-card{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg-secondary);max-width:500px;margin-top:8px;transition:var(--transition)}
+.asset-card:hover{border-color:var(--border-light);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.asset-card img{width:100%;display:block;cursor:pointer;transition:var(--transition)}
+.asset-card img:hover{opacity:0.9}
 .asset-card video{width:100%;display:block}
-.asset-card audio{width:100%;padding:10px 14px;background:var(--s2)}
-.asset-meta{padding:10px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border)}
-.asset-badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:700}
-.badge-image{background:rgba(124,106,255,.15);color:var(--accent2)}
-.badge-video{background:rgba(96,165,250,.15);color:var(--blue)}
-.badge-audio{background:rgba(52,211,153,.15);color:var(--green)}
-.asset-provider{font-size:11px;color:var(--t3);margin-left:auto}
-.asset-dl{padding:5px 10px;background:var(--s3);border:1px solid var(--border);border-radius:6px;color:var(--t2);font-size:12px;text-decoration:none;transition:.15s;font-weight:500}
-.asset-dl:hover{color:var(--text);border-color:var(--border2)}
+.asset-card audio{width:100%;padding:12px 14px;background:var(--bg-secondary)}
+.asset-footer{padding:12px 14px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border)}
+.asset-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:700}
+.badge-image{background:rgba(124,58,237,0.15);color:var(--accent-light)}
+.badge-video{background:rgba(59,130,246,0.15);color:var(--info)}
+.badge-audio{background:rgba(16,185,129,0.15);color:var(--success)}
+.asset-provider{font-size:11px;color:var(--text-tertiary);margin-left:auto}
+.asset-download{padding:6px 12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:12px;text-decoration:none;transition:var(--transition);font-weight:500;cursor:pointer}
+.asset-download:hover{color:var(--text);border-color:var(--border-light);background:var(--bg-secondary)}
 
-/* ── Quick chips ────────────────────────── */
-.chips-bar{padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;background:var(--s1)}
-.chip{padding:6px 12px;background:var(--s2);border:1px solid var(--border);border-radius:20px;font-size:13px;color:var(--t2);cursor:pointer;transition:.12s;white-space:nowrap;user-select:none;font-weight:500}
-.chip:hover{background:var(--s3);color:var(--text);border-color:var(--accent)}
-
-/* ── Input ──────────────────────────────── */
-.input-area{padding:12px 20px 16px;flex-shrink:0}
-.input-box{display:flex;gap:8px;align-items:flex-end;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:10px 10px 10px 16px;transition:border-color .15s}
-.input-box:focus-within{border-color:var(--accent)}
+/* ── Input Area ─────────────────────────────────────── */
+.input-area{padding:16px 24px 24px;flex-shrink:0;background:var(--bg)}
+.input-wrapper{display:flex;gap:10px;align-items:flex-end;background:var(--bg-secondary);border:1px solid var(--border);border-radius:14px;padding:12px 14px;transition:var(--transition)}
+.input-wrapper:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
 #input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:var(--font);resize:none;max-height:120px;line-height:1.6}
-#input::placeholder{color:var(--t3)}
-.send{width:36px;height:36px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;box-shadow:0 0 12px rgba(124,106,255,.3)}
-.send:hover{background:var(--accent2);box-shadow:0 0 18px rgba(124,106,255,.5)}
-.send:disabled{background:var(--s3);box-shadow:none;cursor:not-allowed}
-.send svg{width:16px;height:16px;fill:#fff}
+#input::placeholder{color:var(--text-tertiary)}
+.send-btn{width:40px;height:40px;border-radius:10px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition);box-shadow:0 4px 12px rgba(124,58,237,0.2)}
+.send-btn:hover{background:var(--accent-light);transform:scale(1.05);box-shadow:0 6px 20px rgba(124,58,237,0.3)}
+.send-btn:active{transform:scale(0.95)}
+.send-btn:disabled{background:var(--bg-tertiary);box-shadow:none;cursor:not-allowed;opacity:0.5}
+.send-btn svg{width:18px;height:18px;fill:#fff}
 
-/* ── Auth gate ──────────────────────────── */
-.gate{flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,106,255,.05),rgba(167,139,250,.05))}
-.gate-card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:48px 56px;text-align:center;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.gate-icon{font-size:48px;margin-bottom:16px}
-.gate-card h2{font-size:24px;font-weight:700;letter-spacing:-.5px;margin-bottom:8px;background:linear-gradient(90deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.gate-card p{color:var(--t2);font-size:14px;margin-bottom:28px;line-height:1.7}
-.g-btn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;padding:12px 22px;background:#fff;color:#111;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;text-decoration:none}
-.g-btn:hover{opacity:.85}
-.g-icon{width:20px;height:20px}
+/* ── Auth Gate ──────────────────────────────────────── */
+.gate{flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,58,237,0.05),rgba(167,139,250,0.05))}
+.gate-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:20px;padding:56px 48px;text-align:center;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.gate-icon{font-size:56px;margin-bottom:20px;display:block}
+.gate-card h2{font-size:28px;font-weight:700;letter-spacing:-0.6px;margin-bottom:12px;background:linear-gradient(90deg,var(--text),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gate-card p{color:var(--text-secondary);font-size:15px;margin-bottom:32px;line-height:1.8}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 24px;background:#fff;color:#111;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:var(--transition);text-decoration:none}
+.google-btn:hover{opacity:0.9;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.google-btn:active{transform:translateY(0)}
+.google-icon{width:20px;height:20px}
 
-/* ── Welcome ────────────────────────────── */
-.welcome{align-self:center;text-align:center;padding:36px 24px;max-width:560px}
-.welcome h3{font-size:26px;font-weight:700;letter-spacing:-.6px;margin-bottom:10px;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.welcome p{color:var(--t2);font-size:14px;line-height:1.75}
-.welcome-caps{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:18px}
-.w-cap{padding:5px 12px;background:var(--s2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--t3);font-weight:600}
+/* ── Welcome ────────────────────────────────────────── */
+.welcome{align-self:center;text-align:center;padding:40px 32px;max-width:640px;animation:fadeIn 0.5s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.welcome h3{font-size:32px;font-weight:700;letter-spacing:-0.8px;margin-bottom:14px;background:linear-gradient(135deg,var(--text),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.welcome p{color:var(--text-secondary);font-size:15px;line-height:1.8;margin-bottom:24px}
+.welcome-features{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
+.feature-tag{padding:8px 14px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:20px;font-size:13px;color:var(--text-tertiary);font-weight:600;transition:var(--transition)}
+.feature-tag:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ── Markdown ───────────────────────────── */
-.m-bubble strong{font-weight:700}
-.m-bubble em{font-style:italic;color:var(--accent2)}
-.m-bubble code{background:rgba(124,106,255,.15);color:var(--accent2);padding:2px 6px;border-radius:5px;font-size:13px;font-family:'SF Mono','Fira Code',monospace}
-.m-bubble pre{background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:8px;padding:14px;margin:10px 0;overflow-x:auto}
-.m-bubble pre code{background:none;padding:0;color:var(--text)}
-.m-bubble ul,.m-bubble ol{padding-left:20px;margin:6px 0}
-.m-bubble li{margin:4px 0}
-.m-bubble a{color:var(--accent2);text-decoration:none;font-weight:500}
-.m-bubble a:hover{text-decoration:underline}
+/* ── Markdown ───────────────────────────────────────── */
+.msg-bubble strong{font-weight:700;color:var(--accent-light)}
+.msg-bubble em{font-style:italic;color:var(--accent-light)}
+.msg-bubble code{background:rgba(124,58,237,0.15);color:var(--accent-light);padding:3px 8px;border-radius:6px;font-size:13px;font-family:'SF Mono','Fira Code',monospace}
+.msg-bubble pre{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0;overflow-x:auto}
+.msg-bubble pre code{background:none;padding:0;color:var(--text)}
+.msg-bubble ul,.msg-bubble ol{padding-left:24px;margin:8px 0}
+.msg-bubble li{margin:6px 0}
+.msg-bubble a{color:var(--accent-light);text-decoration:none;font-weight:500;transition:var(--transition)}
+.msg-bubble a:hover{text-decoration:underline}
 
-/* ── Lightbox ───────────────────────────── */
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
-.lb img{max-width:90vw;max-height:90vh;border-radius:10px;box-shadow:0 10px 80px rgba(0,0,0,.9)}
+/* ── Lightbox ───────────────────────────────────────── */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1000;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn 0.2s ease-out}
+.lightbox img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.9)}
 
-@media(max-width:768px){.sidebar{width:0;overflow:hidden}.chips-bar{display:none}}
+/* ── Responsive ─────────────────────────────────────── */
+@media(max-width:1024px){
+  .layout{grid-template-columns:240px 1fr}
+  .sidebar{width:240px}
+  .header-badges{display:none}
+}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-280px;top:0;width:280px;height:100%;z-index:100;transition:var(--transition);background:var(--bg-secondary);box-shadow:4px 0 20px rgba(0,0,0,0.3)}
+  .sidebar.open{left:0}
+  .main{width:100%}
+  .chat-header{padding:12px 16px}
+  .messages{padding:16px}
+  .input-area{padding:12px 16px 16px}
+  .gate-card{padding:40px 24px;max-width:90vw}
+  .welcome{padding:24px 16px}
+  .header-badges{display:none}
+  .message{max-width:100%}
+  .message.user{max-width:100%}
+}
+
+@media(max-width:480px){
+  .logo-name{display:none}
+  .new-chat-btn{font-size:13px;padding:8px 12px}
+  .msg-bubble{padding:12px 14px;font-size:13px}
+  .gate-card{padding:32px 20px;border-radius:16px}
+  .gate-card h2{font-size:24px}
+  .google-btn{padding:12px 20px;font-size:14px}
+  .input-wrapper{padding:10px 12px}
+  #input{font-size:13px}
+}
 </style>
 </head>
 <body>
 <div class="layout" id="app">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sb-top">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
       <div class="logo">
         <div class="logo-icon">⚡</div>
-        <span class="logo-name">Aria</span>
-        <span class="logo-badge">v2</span>
+        <div class="logo-text">
+          <div class="logo-name">Aria</div>
+          <div class="logo-badge">v2</div>
+        </div>
       </div>
-      <button class="new-btn" onclick="newChat()">
-        <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <button class="new-chat-btn" onclick="newChat()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Nueva conversación
       </button>
     </div>
@@ -176,13 +222,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="conv-list"></div>
     </div>
     <div class="sb-footer">
-      <div class="user-row" id="user-row">
+      <div class="user-card" id="user-card">
         <div class="avatar" id="u-avatar">A</div>
-        <div class="u-info">
-          <div class="u-name" id="u-name">–</div>
-          <div class="u-email" id="u-email">–</div>
+        <div class="user-info">
+          <div class="user-name" id="u-name">–</div>
+          <div class="user-email" id="u-email">–</div>
         </div>
-        <button class="logout" onclick="logout()" title="Cerrar sesión">✕</button>
+        <button class="logout-btn" onclick="logout()" title="Cerrar sesión">✕</button>
       </div>
     </div>
   </aside>
@@ -190,14 +236,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <!-- Main -->
   <div class="main" id="main">
 
-    <!-- Auth gate -->
+    <!-- Auth Gate -->
     <div class="gate" id="gate" style="display:none">
       <div class="gate-card">
-        <div class="gate-icon">⚡</div>
+        <span class="gate-icon">⚡</span>
         <h2>Aria V2</h2>
-        <p>Agente cognitivo autónomo.<br>Crea imágenes, videos, audio y productos digitales con IA.</p>
-        <a href="/api/auth/login/google" class="g-btn">
-          <svg class="g-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        <p>Agente cognitivo autónomo con inteligencia artificial avanzada. Genera imágenes, videos, audio y productos digitales en segundos.</p>
+        <a href="/api/auth/login/google" class="google-btn">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
           Continuar con Google
         </a>
       </div>
@@ -206,338 +252,263 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <!-- Chat UI -->
     <div id="chat-ui" style="display:none;flex-direction:column;height:100%">
       <div class="chat-header">
-        <div class="h-dot"></div>
-        <span class="h-title">Aria</span>
-        <div class="h-caps">
-          <span class="h-cap">🖼 Imágenes</span>
-          <span class="h-cap">🎬 Video</span>
-          <span class="h-cap">🎙 Audio</span>
-          <span class="h-cap">🔍 Web</span>
-          <span class="h-cap">🤗 HuggingFace</span>
-          <span class="h-cap">⚡ Groq</span>
+        <div class="header-status"></div>
+        <span class="header-title">Aria</span>
+        <div class="header-badges">
+          <span class="badge">🖼 Imágenes</span>
+          <span class="badge">🎬 Video</span>
+          <span class="badge">🎙 Audio</span>
+          <span class="badge">🔍 Web</span>
+          <span class="badge">🤗 HuggingFace</span>
+          <span class="badge">⚡ Groq</span>
         </div>
       </div>
 
       <div class="messages" id="messages">
         <div class="welcome">
           <h3>Hola, soy Aria ⚡</h3>
-          <p>Agente cognitivo autónomo con acceso a generación de imágenes, video, audio, búsqueda web, modelos de HuggingFace y ejecución de código.</p>
-          <div class="welcome-caps">
-            <span class="w-cap">FLUX · Stable Diffusion</span>
-            <span class="w-cap">Replicate · Video</span>
-            <span class="w-cap">ElevenLabs · TTS</span>
-            <span class="w-cap">Brave Search</span>
-            <span class="w-cap">HuggingFace Hub</span>
-            <span class="w-cap">Groq · Llama-3.3</span>
-            <span class="w-cap">Python Sandbox</span>
+          <p>Agente cognitivo autónomo con acceso a generación de imágenes, video, audio, búsqueda web, modelos de HuggingFace y ejecución de código Python.</p>
+          <div class="welcome-features">
+            <span class="feature-tag">FLUX · Stable Diffusion</span>
+            <span class="feature-tag">FAL.ai · Video</span>
+            <span class="feature-tag">ElevenLabs · TTS</span>
+            <span class="feature-tag">SerpAPI · Búsqueda</span>
+            <span class="feature-tag">HuggingFace Hub</span>
+            <span class="feature-tag">Groq · Llama-3.3</span>
+            <span class="feature-tag">Python Sandbox</span>
           </div>
         </div>
       </div>
 
-      <div class="chips-bar">
-        <span class="chip" onclick="q('Detecta oportunidades en inteligencia artificial generativa')">⚡ Oportunidad</span>
-        <span class="chip" onclick="q('Genera un curso sobre automatización con IA y crea su imagen de portada')">🎓 Curso + portada</span>
-        <span class="chip" onclick="q('Genera una imagen de marketing para un ebook sobre productividad')">🖼 Imagen</span>
-        <span class="chip" onclick="q('Genera un video teaser para un curso de IA')">🎬 Video</span>
-        <span class="chip" onclick="q('Crea una narración profesional: Bienvenido al curso más completo sobre inteligencia artificial')">🎙 Audio</span>
-        <span class="chip" onclick="q('Busca los mejores modelos de HuggingFace para generación de texto en español')">🤗 HF Models</span>
-        <span class="chip" onclick="q('Investiga las tendencias del mercado de cursos online en 2025')">🔍 Research</span>
-        <span class="chip" onclick="q('Analiza el revenue potencial si vendo 50 cursos a $97 y 100 ebooks a $47')">📊 Analytics</span>
-      </div>
-
       <div class="input-area">
-        <div class="input-box">
-          <textarea id="input" rows="1" placeholder="Mensaje para Aria…" onkeydown="onKey(event)" oninput="resize(this)"></textarea>
-          <button class="send" id="send-btn" onclick="send()">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <div class="input-wrapper">
+          <input type="text" id="input" placeholder="Escribe tu pregunta o comando..." autocomplete="off">
+          <button class="send-btn" onclick="sendMessage()" id="send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Lightbox -->
-<div class="lb" id="lb" style="display:none" onclick="closeLb()">
-  <img id="lb-img" src="" alt="">
-</div>
-
 <script>
-// ── State ──────────────────────────────────────────────────────
-let token = localStorage.getItem('aria_token');
-let user = null;
-let convId = null;
-let streaming = false;
+let currentUser = null;
+let currentConvId = null;
+let isLoading = false;
 
-// ── Boot ───────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  const p = new URLSearchParams(location.search);
-  const t = p.get('token');
-  if (t) { localStorage.setItem('aria_token', t); token = t; history.replaceState({}, '', '/'); }
-  token ? await boot() : showGate();
+  const token = new URLSearchParams(window.location.hash.slice(1)).get('token');
+  if (token) {
+    localStorage.setItem('token', token);
+    window.location.hash = '';
+  }
+
+  const storedToken = localStorage.getItem('token');
+  if (!storedToken) {
+    showGate();
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${storedToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) {
+        currentUser = data.user;
+        showChat();
+        loadConversations();
+        return;
+      }
+    }
+  } catch (e) {}
+
+  localStorage.removeItem('token');
+  showGate();
 });
 
-async function boot() {
-  try {
-    const r = await api('/auth/me');
-    if (r.authenticated) { user = r.user; showChat(); renderUser(r.user); loadConvs(); }
-    else showGate();
-  } catch { showGate(); }
+function showGate() {
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('chat-ui').style.display = 'none';
 }
 
-function showGate() { $('gate').style.display = 'flex'; $('chat-ui').style.display = 'none'; }
-function showChat() { $('gate').style.display = 'none'; $('chat-ui').style.display = 'flex'; }
-function logout() { localStorage.removeItem('aria_token'); token = null; user = null; showGate(); }
-
-function renderUser(u) {
-  $('u-name').textContent = u.name || 'Usuario';
-  $('u-email').textContent = u.email || '';
-  $('u-avatar').textContent = (u.name || 'A')[0].toUpperCase();
+function showChat() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('chat-ui').style.display = 'flex';
+  document.getElementById('u-avatar').textContent = (currentUser.name || 'U')[0].toUpperCase();
+  document.getElementById('u-name').textContent = currentUser.name || 'Usuario';
+  document.getElementById('u-email').textContent = currentUser.email;
 }
 
-// ── Conversations ──────────────────────────────────────────────
-async function loadConvs() {
-  try {
-    const cs = await api('/api/conversations');
-    const list = $('conv-list');
-    list.innerHTML = '';
-    (cs || []).forEach(c => {
-      const el = document.createElement('div');
-      el.className = 'conv-item' + (c.id === convId ? ' active' : '');
-      el.textContent = fmtDate(c.created_at);
-      el.onclick = () => loadConv(c.id, el);
-      list.appendChild(el);
-    });
-  } catch {}
-}
+// ── Chat ────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const msg = input.value.trim();
+  if (!msg || isLoading) return;
 
-async function loadConv(id, el) {
-  convId = id;
-  document.querySelectorAll('.conv-item').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  const msgs = await api(`/api/conversations/${id}/messages`);
-  $('messages').innerHTML = '';
-  (msgs || []).forEach(m => appendMsg(m.role, m.content));
-  $('messages').scrollTop = 9999;
-}
+  isLoading = true;
+  input.value = '';
+  document.getElementById('send-btn').disabled = true;
 
-function newChat() {
-  convId = null;
-  document.querySelectorAll('.conv-item').forEach(e => e.classList.remove('active'));
-  $('messages').innerHTML = `<div class="welcome"><h3>Nueva conversación ⚡</h3><p>¿Qué construimos hoy?</p></div>`;
-}
-
-// ── Messaging ──────────────────────────────────────────────────
-function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
-function resize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
-function q(text) { $('input').value = text; send(); }
-
-async function send() {
-  if (streaming) return;
-  const inp = $('input');
-  const text = inp.value.trim();
-  if (!text) return;
-  inp.value = ''; inp.style.height = 'auto';
-
-  const welcome = document.querySelector('.welcome');
-  if (welcome) welcome.remove();
-
-  appendMsg('user', text);
-  const btn = $('send-btn');
-  btn.disabled = true; streaming = true;
-
-  let bubble = null;
-  let bufText = '';
-  let toolEl = null;
+  addMessage('user', msg);
 
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ message: text, conversation_id: convId }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        message: msg,
+        conversation_id: currentConvId
+      })
     });
-    if (res.status === 401) { showGate(); return; }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const reader = res.body.getReader();
-    const dec = new TextDecoder();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let msgEl = null;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const raw = dec.decode(value, { stream: true });
-      for (const line of raw.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        const chunk = line.slice(6);
 
-        if (chunk === '[DONE]') break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
 
-        // Tool indicators
-        if (chunk.startsWith('__tool_start__')) {
-          const name = chunk.replace(/__tool_start__|__/g, '');
-          toolEl = appendTool(name); bubble = null; bufText = ''; continue;
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          if (data.startsWith('__tool')) continue;
+          if (data.startsWith('__conv_id__')) {
+            currentConvId = data.match(/__conv_id__(.+?)__/)[1];
+            continue;
+          }
+          fullText += data;
+          if (!msgEl) msgEl = addMessage('assistant', '');
+          msgEl.querySelector('.msg-bubble').innerHTML = markdownToHtml(fullText);
         }
-        if (chunk.startsWith('__tool_end__')) {
-          if (toolEl) { toolEl.remove(); toolEl = null; } continue;
-        }
-
-        // Asset rendering
-        if (chunk.startsWith('__asset__')) {
-          const json = chunk.replace(/^__asset__|__$/g, '');
-          try { renderAsset(JSON.parse(json)); } catch {}
-          bubble = null; bufText = ''; continue;
-        }
-
-        // Conversation ID
-        if (chunk.startsWith('__conv_id__')) {
-          const id = chunk.replace(/__conv_id__|__/g, '');
-          if (id && !convId) { convId = id; loadConvs(); }
-          continue;
-        }
-
-        // Text streaming
-        if (!bubble) bubble = appendMsg('assistant', '', true);
-        bufText += chunk;
-        bubble.innerHTML = md(bufText);
-        scrollDown();
       }
     }
-  } catch { appendMsg('assistant', 'Error de conexión. Verifica tu sesión.'); }
+  } catch (e) {
+    addMessage('assistant', `❌ Error: ${e.message}`);
+  }
 
-  btn.disabled = false; streaming = false;
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('input').focus();
 }
 
-// ── DOM helpers ────────────────────────────────────────────────
-function appendMsg(role, content, streaming = false) {
-  const msgs = $('messages');
-  const wrap = document.createElement('div');
-  wrap.className = `msg ${role}`;
+function addMessage(role, content) {
+  const messagesDiv = document.getElementById('messages');
+  if (messagesDiv.querySelector('.welcome')) {
+    messagesDiv.querySelector('.welcome').remove();
+  }
 
-  const av = document.createElement('div');
-  av.className = 'm-avatar';
-  av.textContent = role === 'assistant' ? '⚡' : (user?.name?.[0] || 'U').toUpperCase();
-
-  const body = document.createElement('div');
-  body.className = 'm-body';
-  const bub = document.createElement('div');
-  bub.className = 'm-bubble';
-  bub.innerHTML = content ? md(content) : '';
-  const time = document.createElement('div');
-  time.className = 'm-time';
-  time.textContent = now();
-
-  body.appendChild(bub); body.appendChild(time);
-  wrap.appendChild(av); wrap.appendChild(body);
-  msgs.appendChild(wrap); scrollDown();
-  return streaming ? bub : null;
+  const msgEl = document.createElement('div');
+  msgEl.className = `message ${role}`;
+  msgEl.innerHTML = `
+    <div class="msg-avatar">${role === 'user' ? (currentUser.name || 'U')[0].toUpperCase() : '⚡'}</div>
+    <div class="msg-content">
+      <div class="msg-bubble">${markdownToHtml(content)}</div>
+      <div class="msg-time">${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</div>
+    </div>
+  `;
+  messagesDiv.appendChild(msgEl);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  return msgEl;
 }
 
-function appendTool(name) {
-  const msgs = $('messages');
-  const el = document.createElement('div');
-  el.className = 'tool-row';
-  const labels = {
-    generate_image: '🖼 Generando imagen',
-    generate_video: '🎬 Generando video',
-    generate_audio: '🎙 Generando audio',
-    web_search: '🔍 Buscando en la web',
-    research_topic: '🔍 Investigando tema',
-    huggingface_search_models: '🤗 Buscando modelos',
-    huggingface_run_model: '🤗 Ejecutando modelo',
-    fast_reasoning: '⚡ Razonando con Groq',
-    execute_code: '💻 Ejecutando código',
-    generate_content: '✍️ Generando contenido',
-    detect_opportunity: '💡 Detectando oportunidades',
-    manage_products: '🗂 Gestionando productos',
-    get_analytics: '📊 Cargando analytics',
-    search_memory: '🧠 Buscando en memoria',
-    save_memory: '🧠 Guardando en memoria',
-    web_fetch: '🌐 Leyendo página',
-  };
-  el.innerHTML = `<div class="tool-pulse"></div> ${labels[name] || name}…`;
-  msgs.appendChild(el); scrollDown();
-  return el;
+function markdownToHtml(text) {
+  if (!text) return '';
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  text = text.replace(/`(.+?)`/g, '<code>$1</code>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
 }
 
-function renderAsset(asset) {
-  const msgs = $('messages');
-  const wrap = document.createElement('div');
-  wrap.className = 'msg assistant';
-
-  const av = document.createElement('div');
-  av.className = 'm-avatar';
-  av.textContent = '⚡';
-
-  const body = document.createElement('div');
-  body.className = 'm-body';
-
-  const card = document.createElement('div');
-  card.className = 'asset-card';
-
-  if (asset.type === 'image' && asset.url) {
-    const img = document.createElement('img');
-    img.src = asset.url;
-    img.alt = asset.prompt || 'Imagen generada';
-    img.loading = 'lazy';
-    img.onclick = () => openLb(asset.url);
-    card.appendChild(img);
-  } else if (asset.type === 'video' && asset.url) {
-    const vid = document.createElement('video');
-    vid.src = asset.url; vid.controls = true; vid.loop = true;
-    card.appendChild(vid);
-  } else if (asset.type === 'audio' && asset.url) {
-    const aud = document.createElement('audio');
-    aud.src = asset.url; aud.controls = true;
-    card.appendChild(aud);
-  } else { return; }
-
-  const meta = document.createElement('div');
-  meta.className = 'asset-meta';
-  const badge = document.createElement('span');
-  badge.className = `asset-badge badge-${asset.type}`;
-  badge.textContent = { image: '🖼 Imagen', video: '🎬 Video', audio: '🎙 Audio' }[asset.type] || asset.type;
-  const prov = document.createElement('span');
-  prov.className = 'asset-provider';
-  prov.textContent = asset.provider || '';
-  const dl = document.createElement('a');
-  dl.href = asset.url; dl.download = ''; dl.target = '_blank';
-  dl.className = 'asset-dl'; dl.textContent = '↓ Descargar';
-  meta.appendChild(badge); meta.appendChild(prov); meta.appendChild(dl);
-  card.appendChild(meta);
-
-  body.appendChild(card);
-  wrap.appendChild(av); wrap.appendChild(body);
-  msgs.appendChild(wrap); scrollDown();
+function newChat() {
+  currentConvId = null;
+  document.getElementById('messages').innerHTML = `
+    <div class="welcome">
+      <h3>Hola, soy Aria ⚡</h3>
+      <p>Agente cognitivo autónomo con acceso a generación de imágenes, video, audio, búsqueda web, modelos de HuggingFace y ejecución de código Python.</p>
+      <div class="welcome-features">
+        <span class="feature-tag">FLUX · Stable Diffusion</span>
+        <span class="feature-tag">FAL.ai · Video</span>
+        <span class="feature-tag">ElevenLabs · TTS</span>
+        <span class="feature-tag">SerpAPI · Búsqueda</span>
+        <span class="feature-tag">HuggingFace Hub</span>
+        <span class="feature-tag">Groq · Llama-3.3</span>
+        <span class="feature-tag">Python Sandbox</span>
+      </div>
+    </div>
+  `;
+  document.getElementById('input').focus();
 }
 
-function openLb(src) { $('lb-img').src = src; $('lb').style.display = 'flex'; }
-function closeLb() { $('lb').style.display = 'none'; }
-
-function scrollDown() { const m = $('messages'); m.scrollTop = m.scrollHeight; }
-
-// ── Markdown ───────────────────────────────────────────────────
-function md(t) {
-  return t
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/```([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
-    .replace(/`([^`]+)`/g,'<code>$1</code>')
-    .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*([^*\n]+)\*/g,'<em>$1</em>')
-    .replace(/^#{1,3} (.+)$/gm,'<strong>$1</strong>')
-    .replace(/^[-•] (.+)$/gm,'• $1')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>')
-    .replace(/\n{2,}/g,'<br><br>')
-    .replace(/\n/g,'<br>');
+function logout() {
+  localStorage.removeItem('token');
+  currentUser = null;
+  currentConvId = null;
+  showGate();
 }
 
-// ── Helpers ────────────────────────────────────────────────────
-async function api(path, opts = {}) {
-  const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers || {}) } });
-  return r.json();
+async function loadConversations() {
+  try {
+    const res = await fetch('/api/conversations', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    if (res.ok) {
+      const convs = await res.json();
+      const list = document.getElementById('conv-list');
+      list.innerHTML = '';
+      convs.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'conv-item';
+        item.textContent = new Date(c.created_at).toLocaleDateString('es-ES');
+        item.onclick = () => loadConversation(c.id);
+        list.appendChild(item);
+      });
+    }
+  } catch (e) {}
 }
-function $(id) { return document.getElementById(id); }
-function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
-function fmtDate(iso) { if (!iso) return 'Conversación'; const d = new Date(iso); return d.toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+async function loadConversation(convId) {
+  try {
+    const res = await fetch(`/api/conversations/${convId}/messages`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    if (res.ok) {
+      const msgs = await res.json();
+      currentConvId = convId;
+      document.getElementById('messages').innerHTML = '';
+      msgs.forEach(m => addMessage(m.role, m.content));
+    }
+  } catch (e) {}
+}
+
+// ── Keyboard ────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && document.getElementById('input') === document.activeElement) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ── Mobile Sidebar ──────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
 </script>
 </body>
 </html>
