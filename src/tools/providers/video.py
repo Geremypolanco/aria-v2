@@ -1,13 +1,14 @@
 """
 Video generation provider.
-Primary:  Replicate → minimax/video-01 (best quality short clips)
-Fallback: Replicate → lucataco/animate-diff (animation from prompt)
-Fallback: HuggingFace → text-to-video models
+- Primary: Replicate (minimax)
+- Fallback: FAL.ai (Luma Dream Machine / Kling)
+- Fallback: HuggingFace
 """
 from __future__ import annotations
 import httpx
 import time
 import uuid
+import asyncio
 from src.core.config import settings
 from src.db.client import get_supabase
 
@@ -30,10 +31,7 @@ async def generate_video(
 
     full_prompt = prompt + style_suffix
 
-    if not settings.REPLICATE_API_KEY and not settings.HUGGINGFACE_API_KEY:
-        raise RuntimeError("No video provider configured. Add REPLICATE_API_KEY or HUGGINGFACE_API_KEY.")
-
-    # ── Try Replicate minimax/video-01 ────────────────────────────────────
+    # ── Try Replicate ─────────────────────────────────────────────────────
     if settings.REPLICATE_API_KEY:
         try:
             result = await _replicate_video(full_prompt, duration_seconds)
@@ -42,7 +40,16 @@ async def generate_video(
         except Exception as e:
             print(f"Replicate video failed: {e}")
 
-    # ── Fallback: HuggingFace text-to-video ───────────────────────────────
+    # ── Fallback: FAL.ai (Luma Dream Machine) ─────────────────────────────
+    if settings.FAL_API_KEY:
+        try:
+            result = await _fal_video(full_prompt)
+            url = await _save_video_to_supabase(result["url"], user_id)
+            return {**result, "url": url, "provider": "fal-ai/luma", "prompt": prompt, "style": style}
+        except Exception as e:
+            print(f"FAL video failed: {e}")
+
+    # ── Fallback: HuggingFace ──────────────────────────────────────────────
     if settings.HUGGINGFACE_API_KEY:
         try:
             result = await _hf_video(full_prompt)
@@ -51,7 +58,7 @@ async def generate_video(
         except Exception as e:
             print(f"HF video failed: {e}")
 
-    raise RuntimeError("All video providers failed.")
+    raise RuntimeError("All video providers failed. Please check API keys.")
 
 
 async def _replicate_video(prompt: str, duration: int) -> dict:
@@ -60,7 +67,6 @@ async def _replicate_video(prompt: str, duration: int) -> dict:
         "Content-Type": "application/json",
     }
     async with httpx.AsyncClient(timeout=300) as client:
-        # Submit prediction
         res = await client.post(
             "https://api.replicate.com/v1/models/minimax/video-01/predictions",
             headers=headers,
@@ -70,9 +76,8 @@ async def _replicate_video(prompt: str, duration: int) -> dict:
         prediction = res.json()
         pred_id = prediction["id"]
 
-        # Poll for result (max 4 min)
         for _ in range(48):
-            await _async_sleep(5)
+            await asyncio.sleep(5)
             poll = await client.get(
                 f"https://api.replicate.com/v1/predictions/{pred_id}",
                 headers=headers,
@@ -86,6 +91,38 @@ async def _replicate_video(prompt: str, duration: int) -> dict:
                 raise RuntimeError(f"Replicate failed: {data.get('error')}")
 
     raise TimeoutError("Video generation timed out")
+
+
+async def _fal_video(prompt: str) -> dict:
+    """Fallback using FAL.ai Luma Dream Machine."""
+    headers = {
+        "Authorization": f"Key {settings.FAL_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=300) as client:
+        # Submit to Luma
+        res = await client.post(
+            "https://queue.fal.run/fal-ai/luma-dream-machine",
+            headers=headers,
+            json={"prompt": prompt},
+        )
+        res.raise_for_status()
+        request_id = res.json()["request_id"]
+
+        # Poll
+        for _ in range(60):
+            await asyncio.sleep(5)
+            poll = await client.get(
+                f"https://queue.fal.run/fal-ai/luma-dream-machine/requests/{request_id}",
+                headers=headers,
+            )
+            data = poll.json()
+            if data["status"] == "COMPLETED":
+                return {"url": data["video"]["url"], "duration": 5}
+            elif data["status"] == "FAILED":
+                raise RuntimeError("FAL generation failed")
+    
+    raise TimeoutError("FAL video generation timed out")
 
 
 async def _hf_video(prompt: str) -> dict:
@@ -115,8 +152,3 @@ async def _save_video_to_supabase(url_or_bytes, user_id: str, is_bytes: bool = F
         return db.storage.from_("assets").get_public_url(path)
     except Exception:
         return url_or_bytes if isinstance(url_or_bytes, str) else ""
-
-
-async def _async_sleep(seconds: float):
-    import asyncio
-    await asyncio.sleep(seconds)
