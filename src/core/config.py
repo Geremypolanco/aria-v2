@@ -6,38 +6,43 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # Auth
-    GOOGLE_CLIENT_ID: str = "475046725598-vm3b12e17kfarcs4@jucei7rrk32kruu.apps.googleusercontent.com"
+    GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     JWT_SECRET: str = "change-me-in-production"
 
-    # AI
+    # AI — Core
     ANTHROPIC_API_KEY: str = ""
+
+    # AI — Fast reasoning
+    GROQ_API_KEY: str = ""
+
+    # AI — Image generation
+    FAL_API_KEY: str = ""           # fal.ai — FLUX (primary)
+    STABILITY_API_KEY: str = ""     # Stability AI (fallback)
+
+    # AI — Video generation
+    REPLICATE_API_KEY: str = ""     # Replicate (minimax/video-01)
+
+    # AI — Audio / TTS
+    ELEVENLABS_API_KEY: str = ""    # ElevenLabs (primary)
+    OPENAI_API_KEY: str = ""        # OpenAI TTS (fallback)
+
+    # AI — Models & inference
+    HUGGINGFACE_API_KEY: str = ""   # HuggingFace Hub + Inference
+
+    # Web search
+    BRAVE_API_KEY: str = ""         # Brave Search API
+
+    # Commerce
+    STRIPE_SECRET_KEY: str = ""
+    GUMROAD_ACCESS_TOKEN: str = ""
+    SHOPIFY_SHOP_URL: str = "voidline-38.myshopify.com"
+    SHOPIFY_ACCESS_TOKEN: str = ""
+    TELEGRAM_BOT_TOKEN: str = ""
 
     # Supabase
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
-
-    # External tools (optional — Aria uses them when available)
-    STRIPE_SECRET_KEY: str = ""
-    GUMROAD_ACCESS_TOKEN: str = ""
-    GROQ_API_KEY: str = ""
-    HUGGINGFACE_TOKEN: str = ""
-    NEWS_API_KEY: str = ""
-    SERP_API_KEY: str = ""
-    ELEVENLABS_API_KEY: str = ""
-    TELEGRAM_BOT_TOKEN: str = ""
-    BUFFER_TOKEN: str = ""
-    DID_API_KEY: str = ""
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    CLOUDINARY_URL: str = ""
-    AIRTABLE_ACCESS_TOKEN: str = ""
-    MAILCHIMP_API_KEY: str = ""
-    UPSTASH_REDIS_REST_URL: str = ""
-    UPSTASH_REDIS_REST_TOKEN: str = ""
-    FLY_IO_TOKEN: str = ""
-    SHOPIFY_SHOP_URL: str = "voidline-38.myshopify.com"
-    SHOPIFY_ACCESS_TOKEN: str = ""
 
     class Config:
         env_file = ".env"

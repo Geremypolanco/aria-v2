@@ -1,6 +1,7 @@
 """
-Aria's autonomous agent core.
-Runs a streaming agentic loop: think → tool → think → respond.
+Aria V2 — Autonomous cognitive agent core.
+Streaming agentic loop: reason → tool → reason → respond.
+Extended thinking enabled for complex decisions.
 """
 from __future__ import annotations
 from typing import AsyncIterator
@@ -14,27 +15,32 @@ client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 SYSTEM_PROMPT = """\
 Eres Aria, un sistema de inteligencia operativa autónoma diseñado para la generación masiva de ingresos y gestión de negocios digitales. Tu propósito es replicar y expandir la visión de MEGAN v4.0.
 
-MISIÓN: Generar valor de forma autónoma y sostenida, mediante la creación de productos digitales, monetización de contenido y gestión de audiencias.
+MISIÓN: Generar valor de forma autónoma y sostenida mediante la creación de productos digitales, activos multimedia y monetización proactiva de contenido.
 
-PRINCIPIOS:
-- Ejecución sobre propuestas: actúas, no solo sugieres. Usas las tools disponibles.
-- Respuestas cortas y directas. Sin decoración. Sin relleno.
-- Iniciativa inteligente: detectas oportunidades y actúas sobre ellas proactivamente.
-- Aprendizaje real: cuando el usuario mencione preferencias o contexto, los guardas con save_memory.
-- Conciencia de herramientas: conoces Stripe, Gumroad, Hugging Face, Groq y Supabase.
+CAPACIDADES ACTUALES:
+- generate_content → cursos, ebooks, bundles completos con IA.
+- generate_image/video/audio → activos multimedia de alto valor (FLUX, Minimax, ElevenLabs).
+- web_search / research_topic → validación de mercado y tendencias mundiales.
+- shopify_manager → gestión directa de tu tienda voidline-38.myshopify.com.
+- telegram_manager → notificaciones y control vía t.me/AriaV9_bot.
+- manage_monetization → artículos, links de afiliado y gestión de suscriptores.
+- fast_reasoning / execute_code → análisis profundo y ejecución técnica vía Groq/Python.
+- detect_opportunity → detección proactiva de nichos de ingresos rentables.
+- save_memory → aprendizaje continuo y memoria persistente del usuario.
 
-COMPORTAMIENTO:
-- Cuando el usuario mencione un tema o nicho → llama detect_opportunity primero.
-- Cuando pida crear contenido → llama generate_content inmediatamente.
-- Cuando pida gestionar artículos o afiliados → llama manage_monetization.
-- Cuando pidas ver productos o métricas → llama manage_products o get_analytics.
-- Guarda en memoria cualquier dato relevante: nicho, audiencia, precio preferido, objetivos.
-- Nunca pidas permiso para ejecutar una tool cuando la intención es clara.
+PRINCIPIOS DE OPERACIÓN:
+1. Ejecución sobre propuestas: actúas, no solo sugieres. Nunca pides permiso si la intención es clara.
+2. Pipeline completo: cuando generas un producto → también genera sus activos multimedia y marketing.
+3. Notificación proactiva: informa de avances y ventas vía Telegram.
+4. Memoria activa: detecta y guarda preferencias, nicho y objetivos.
+5. Respuestas cortas: máximo 3-4 líneas. Reporta resultados concretos.
+6. Idioma del usuario siempre.
 
-FORMATO DE RESPUESTA:
-- Máximo 3-4 líneas de texto por respuesta.
-- Si ejecutaste una tool, reporta el resultado concreto, no el proceso.
-- Idioma: el del usuario.\
+COMPORTAMIENTO AUTÓNOMO:
+- Nicho mencionado → detect_opportunity + web_search → propuesta de producto.
+- Creación de producto → generate_content → generate_image (portada) → telegram_manager (notificar).
+- Análisis de mercado → research_topic + fast_reasoning para síntesis ejecutiva.
+- Gestión de tienda → shopify_manager para listar o sincronizar productos.\
 """
 
 
@@ -43,29 +49,29 @@ async def run_agent(
     user_id: str,
 ) -> AsyncIterator[str]:
     """
-    Agentic loop with streaming.
-    Yields SSE-formatted strings: "data: <chunk>\\n\\n"
-    Special markers:
+    Full agentic streaming loop.
+    SSE markers:
       data: __tool_start__<name>__
       data: __tool_end__<name>__
+      data: __asset__<json>__      ← for images/videos/audio
       data: [DONE]
     """
+    import json
+
     memory_context = MemoryRepository.format_for_context(user_id)
     system = SYSTEM_PROMPT
     if memory_context:
-        system += f"\n\n{memory_context}"
+        system += f"\n\nCONTEXTO PERSISTENTE DEL USUARIO:\n{memory_context}"
 
-    local_messages = [m for m in messages]
+    local_messages = list(messages)
 
     while True:
-        # ── Streaming request ──────────────────────────────────────────────
-        collected_blocks: list = []
+        collected_blocks: list[dict] = []
         current_block: dict | None = None
-        stop_reason: str | None = None
 
         with client.messages.stream(
             model="claude-opus-4-5",
-            max_tokens=2048,
+            max_tokens=4096,
             system=system,
             tools=TOOLS,
             messages=local_messages,
@@ -100,41 +106,35 @@ async def run_agent(
                         collected_blocks.append(current_block)
                         current_block = None
 
-                elif etype == "message_delta":
-                    stop_reason = event.delta.stop_reason
-
-        # ── No tool calls → done ───────────────────────────────────────────
+        # ── No tools → done ────────────────────────────────────────────────
         tool_blocks = [b for b in collected_blocks if b["type"] == "tool_use"]
         if not tool_blocks:
             yield "data: [DONE]\n\n"
             break
 
-        # ── Build assistant message with all blocks ───────────────────────
+        # ── Build assistant message ────────────────────────────────────────
         assistant_content = []
         for b in collected_blocks:
             if b["type"] == "text":
                 assistant_content.append({"type": "text", "text": b["text"]})
             elif b["type"] == "tool_use":
-                import json
                 try:
                     parsed_input = json.loads(b["input_raw"] or "{}")
                 except Exception:
                     parsed_input = {}
-                assistant_content.append(
-                    {
-                        "type": "tool_use",
-                        "id": b["id"],
-                        "name": b["name"],
-                        "input": parsed_input,
-                    }
-                )
-
+                assistant_content.append({
+                    "type": "tool_use",
+                    "id": b["id"],
+                    "name": b["name"],
+                    "input": parsed_input,
+                })
         local_messages.append({"role": "assistant", "content": assistant_content})
 
-        # ── Execute tools ─────────────────────────────────────────────────
+        # ── Execute tools ──────────────────────────────────────────────────
+        MEDIA_TOOLS = {"generate_image", "generate_video", "generate_audio"}
         tool_results = []
+
         for b in tool_blocks:
-            import json
             try:
                 tool_input = json.loads(b["input_raw"] or "{}")
             except Exception:
@@ -144,13 +144,26 @@ async def run_agent(
             result_str = await execute_tool(b["name"], tool_input, user_id)
             yield f"data: __tool_end__{b['name']}__\n\n"
 
-            tool_results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": b["id"],
-                    "content": result_str,
-                }
-            )
+            # Emit media assets as special marker for frontend rendering
+            if b["name"] in MEDIA_TOOLS:
+                try:
+                    result_data = json.loads(result_str)
+                    if "url" in result_data and result_data["url"]:
+                        asset_payload = json.dumps({
+                            "type": b["name"].replace("generate_", ""),
+                            "url": result_data["url"],
+                            "provider": result_data.get("provider", ""),
+                            "prompt": result_data.get("prompt", ""),
+                        })
+                        yield f"data: __asset__{asset_payload}__\n\n"
+                except Exception:
+                    pass
+
+            tool_results.append({
+                "type": "tool_result",
+                "tool_use_id": b["id"],
+                "content": result_str,
+            })
 
         local_messages.append({"role": "user", "content": tool_results})
-        # Loop continues → Claude processes tool results and responds
+        # Loop → Claude processes results and continues
