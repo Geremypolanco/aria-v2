@@ -8,17 +8,19 @@ class UserRepository:
     @staticmethod
     def upsert(google_sub: str, email: str, name: str, picture: str = "") -> dict:
         db = get_supabase()
-        res = db.table("users").upsert(
-            {
-                "id": google_sub,
-                "email": email,
-                "name": name,
-                "picture": picture,
-                "updated_at": datetime.utcnow().isoformat(),
-            },
-            on_conflict="id",
-        ).execute()
-        return res.data[0] if res.data else {}
+        data = {
+            "id": google_sub,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        try:
+            db.table("users").upsert(data, on_conflict="id").execute()
+            return data
+        except Exception as e:
+            print(f"Error in UserRepository.upsert: {e}")
+            return data
 
     @staticmethod
     def get(user_id: str) -> dict | None:

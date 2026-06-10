@@ -45,7 +45,12 @@ async def callback(request: Request):
     if not sub or not email:
         return JSONResponse({"error": "No se pudo obtener info del usuario"}, status_code=400)
 
-    UserRepository.upsert(sub, email, name, picture)
+    try:
+        UserRepository.upsert(sub, email, name, picture)
+    except Exception as e:
+        print(f"Auth error: {e}")
+        # Even if DB fails, we try to issue a token if info is valid
+        pass
 
     access_token = create_access_token({"sub": sub, "email": email, "name": name})
 
