@@ -5,7 +5,8 @@ from src.core.config import settings
 from src.auth.jwt import create_access_token
 from src.db.repositories import UserRepository
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+# Cambiamos el prefijo a /api/auth para que coincida con las rutas estándar de Vercel
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 oauth = OAuth()
 oauth.register(
@@ -19,7 +20,12 @@ oauth.register(
 
 @router.get("/login/google")
 async def login(request: Request):
-    redirect_uri = request.url_for("auth_callback")
+    # Forzamos la URL de redirección a HTTPS y con el path correcto
+    redirect_uri = str(request.url_for("auth_callback"))
+    # En Vercel, a veces url_for genera http en lugar de https tras proxies
+    if "vercel.app" in redirect_uri and redirect_uri.startswith("http://"):
+        redirect_uri = redirect_uri.replace("http://", "https://")
+    
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -43,14 +49,12 @@ async def callback(request: Request):
 
     access_token = create_access_token({"sub": sub, "email": email, "name": name})
 
-    # Redirect to frontend with token in fragment (never in query param)
+    # Redirigir al home con el token
     return RedirectResponse(url=f"/?token={access_token}")
 
 
 @router.get("/me")
 async def me(request: Request):
-    """Returns current user info from JWT cookie/header (for frontend bootstrap)."""
-    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
     from src.auth.jwt import decode_access_token
 
     auth_header = request.headers.get("Authorization", "")

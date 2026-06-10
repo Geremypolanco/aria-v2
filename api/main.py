@@ -29,6 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET)
+# El router ya tiene el prefijo /api/auth definido internamente
 app.include_router(auth_router)
 
 
