@@ -3,6 +3,17 @@ from typing import List, Dict, Any, AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
+from src.agents.chat.agent import ChatAgent
+from src.agents.voice.agent import VoiceAgent
+from src.agents.vision.agent import VisionAgent
+from src.agents.code.agent import CodeAgent
+from src.agents.research.agent import ResearchAgent
+from src.agents.image.agent import ImageAgent
+from src.agents.writer.agent import WriterAgent
+from src.agents.git.agent import GitAgent
+from src.agents.file.agent import FileAgent
+from src.agents.memory.agent import MemoryAgent
+
 class OrchestratorV3:
     """
     ARIA ENGINE v3.0 Orchestrator
@@ -10,7 +21,18 @@ class OrchestratorV3:
     """
     
     def __init__(self):
-        self.agents = {} # To be populated with agent instances
+        self.agents = {
+            "chat": ChatAgent(),
+            "voice": VoiceAgent(),
+            "vision": VisionAgent(),
+            "code": CodeAgent(),
+            "research": ResearchAgent(),
+            "image": ImageAgent(),
+            "writer": WriterAgent(),
+            "git": GitAgent(),
+            "file": FileAgent(),
+            "memory": MemoryAgent()
+        }
         
     async def plan(self, user_input: str) -> List[Dict[str, Any]]:
         """Decompose user input into a sequence of agent tasks."""
@@ -24,11 +46,18 @@ class OrchestratorV3:
         for step in plan:
             agent_name = step.get("agent")
             task = step.get("task")
-            logger.info(f"Delegating to {agent_name}: {task}")
+            context = step.get("context", {})
             
-            # Mocking agent execution and SSE streaming
+            agent = self.agents.get(agent_name)
+            if not agent:
+                yield f"data: [ERROR] Agent {agent_name} not found.\n\n"
+                continue
+
+            logger.info(f"Delegating to {agent_name}: {task}")
             yield f"data: [PLAN] Executing {agent_name}...\n\n"
-            yield f"data: Step: {task}\n\n"
+            
+            async for chunk in agent.execute(task, context):
+                yield chunk
             
     async def monitor(self, task_id: str):
         """Track agent progress and handle failures."""

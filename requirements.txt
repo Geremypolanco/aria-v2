@@ -1,11 +1,35 @@
+# Core API
 fastapi
 uvicorn
 pydantic
 python-dotenv
-supabase
-httpx
-anthropic
-openai
-redis
 python-multipart
 starlette
+
+# Database & Cache
+supabase
+redis
+aiosqlite
+
+# AI Models (Local & Open Source)
+openai-whisper
+diffusers
+transformers
+sentence-transformers
+torch
+pillow
+rembg
+
+# Web & Scraping
+playwright
+beautifulsoup4
+httpx
+
+# Document & Media Processing
+weasyprint
+reportlab
+moviepy
+ffmpeg-python
+
+# Scheduling & Task Queue
+bullmq
