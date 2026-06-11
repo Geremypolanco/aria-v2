@@ -1,22 +1,39 @@
 import logging
 from typing import Any, Dict, AsyncGenerator
 from src.agents.base_v3 import BaseAgentV3
+from src.sandbox.executor import sandbox
 
 logger = logging.getLogger(__name__)
 
 class FileAgent(BaseAgentV3):
+    """
+    FileAgent v3: El Gestor.
+    Diferenciador: Entrega archivos reales, no solo texto.
+    """
     def __init__(self):
-        super().__init__(name="FileAgent", model="pil + rembg + weasyprint")
+        super().__init__(name="FileAgent", model="gpt-4-turbo")
 
     async def execute(self, task: str, context: Dict[str, Any] = None) -> AsyncGenerator[str, None]:
-        action = context.get("action", "convert")
-        logger.info(f"{self.name} performing file action: {action}")
+        file_action = context.get("action", "create")
+        filename = context.get("filename", "output.txt")
+        content = context.get("content", "")
         
-        if action == "remove_bg":
-            yield f"data: {self.name} removing background using rembg...\n\n"
-        elif action == "pdf_gen":
-            yield f"data: {self.name} generating PDF using WeasyPrint...\n\n"
-        elif action == "upscale":
-            yield f"data: {self.name} upscaling image using Real-ESRGAN...\n\n"
+        logger.info(f"{self.name} performing file action: {file_action} on {filename}")
+        yield f"data: [FILE] Executing {file_action} for {filename}...\n\n"
+        
+        if file_action == "create":
+            script = f"echo '{content}' > {filename}"
+            result = sandbox.execute_bash(script)
+        elif file_action == "zip":
+            script = f"zip -r {filename}.zip ."
+            result = sandbox.execute_bash(script)
+        else:
+            result = sandbox.execute_bash(f"ls -lh {filename}")
             
-        yield f"data: {self.name} file processing completed.\n\n"
+        if result.get("success"):
+            yield f"data: [FILE] File operation completed.\n\n"
+            yield f"data: [FILE] Delivering real file: {filename}\n\n"
+        else:
+            yield f"data: [ERROR] File operation failed: {result.get('error')}\n\n"
+            
+        yield f"data: [DONE] File task completed.\n\n"
