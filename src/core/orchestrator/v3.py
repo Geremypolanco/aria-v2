@@ -7,6 +7,7 @@ from src.agents.vision.agent import VisionAgent
 from src.agents.code.agent import CodeAgent
 from src.agents.research.agent import ResearchAgent
 from src.agents.image.agent import ImageAgent
+from src.agents.video.agent import VideoAgent
 from src.agents.writer.agent import WriterAgent
 from src.agents.git.agent import GitAgent
 from src.agents.file.agent import FileAgent
@@ -29,6 +30,7 @@ class OrchestratorV3:
             "code": CodeAgent(),
             "research": ResearchAgent(),
             "image": ImageAgent(),
+            "video": VideoAgent(),
             "writer": WriterAgent(),
             "git": GitAgent(),
             "file": FileAgent(),

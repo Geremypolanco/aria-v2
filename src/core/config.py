@@ -36,13 +36,18 @@ class Settings(BaseSettings):
     # Commerce
     STRIPE_SECRET_KEY: str = ""
     GUMROAD_ACCESS_TOKEN: str = ""
-    SHOPIFY_SHOP_URL: str = "voidline-38.myshopify.com"
-    SHOPIFY_ACCESS_TOKEN: str = ""
+    SHOPIFY_URL: str = "voidline-38.myshopify.com"
+    SHOPIFY_ADMIN_TOKEN: str = ""
+    SHOPIFY_API_KEY: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
+
+    # Redis & BullMQ
+    REDIS_URL: str = "redis://localhost:6379"
 
     # Supabase
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
 
     class Config:
         env_file = ".env"
